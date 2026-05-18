@@ -87,14 +87,14 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
 
   // ── focus detection ────────────────────────────────────────────────────────
   useEffect(() => {
+    const shadowHost = document.getElementById('vkb-shadow-host')
+
     const onFocusIn = (e: FocusEvent) => {
       if (!isTextInput(e.target)) return
-
       if (pendingClose.current !== null) {
         clearTimeout(pendingClose.current)
         pendingClose.current = null
       }
-
       const target = e.target
       targetRef.current = target
       const value     = target.value
@@ -102,24 +102,28 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'OPEN', value, cursorPos })
     }
 
-    const onFocusOut = (_e: FocusEvent) => {
-      // 400ms gives autofill popups, payment pickers, and other browser UI
-      // time to resolve without incorrectly closing the keyboard.
+    // Close only on deliberate tap outside — not on focusout.
+    // focusout is too noisy (autofill popups, payment pickers, browser chrome).
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node
+      // Tapping an input: focusin will handle switching
+      if (isTextInput(target)) return
+      // Tapping inside the keyboard shadow host: ignore
+      if (shadowHost && (shadowHost === target || shadowHost.contains(target))) return
+      // Tapping outside everything: close
+      if (pendingClose.current !== null) clearTimeout(pendingClose.current)
       pendingClose.current = setTimeout(() => {
-        const active = document.activeElement
-        if (!isTextInput(active)) {
-          dispatch({ type: 'CLOSE' })
-          targetRef.current = null
-        }
+        dispatch({ type: 'CLOSE' })
+        targetRef.current = null
         pendingClose.current = null
-      }, 400)
+      }, 80)
     }
 
-    document.addEventListener('focusin',  onFocusIn)
-    document.addEventListener('focusout', onFocusOut)
+    document.addEventListener('focusin',     onFocusIn,     true)
+    document.addEventListener('pointerdown',  onPointerDown, true)
     return () => {
-      document.removeEventListener('focusin',  onFocusIn)
-      document.removeEventListener('focusout', onFocusOut)
+      document.removeEventListener('focusin',     onFocusIn,     true)
+      document.removeEventListener('pointerdown',  onPointerDown, true)
     }
   }, [])
 

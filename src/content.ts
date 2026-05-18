@@ -56,9 +56,10 @@ function mountKeyboard() {
 
 function suppressAutofill() {
   const apply = (el: HTMLInputElement) => {
-    if (!el.getAttribute('autocomplete')) {
-      el.setAttribute('autocomplete', 'off')
-    }
+    // 'new-password' reliably suppresses Chrome autofill + Google Pay popups.
+    // 'off' alone is ignored by Chrome for payment/contact fields.
+    el.setAttribute('autocomplete', 'new-password')
+    el.setAttribute('data-lpignore', 'true')
   }
   // Apply to existing inputs
   document.querySelectorAll<HTMLInputElement>('input').forEach(apply)
