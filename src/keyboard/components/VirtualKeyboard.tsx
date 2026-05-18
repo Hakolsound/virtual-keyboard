@@ -97,23 +97,28 @@ function GlobePopover() {
   )
 }
 
+// Enter: fast-start, slow-settle (ease-out).  Exit: slow-start, fast-end (ease-in).
+const ENTER_TRANSITION = 'transform 300ms cubic-bezier(0,0,0.2,1), opacity 300ms cubic-bezier(0,0,0.2,1)'
+const EXIT_TRANSITION  = 'transform 220ms cubic-bezier(0.4,0,1,1),  opacity 220ms cubic-bezier(0.4,0,1,1)'
+
 function VirtualKeyboard() {
   const { isOpen, activeLanguage, showNumbers, globeOpen } = useKeyboard()
   const { isSettingsOpen } = useSettings()
 
-  const [visible, setVisible] = useState(false)
-  const [exiting, setExiting] = useState(false)
+  const [visible,  setVisible]  = useState(false)
+  // 'in' = animating in, 'shown' = fully visible, 'out' = animating out
+  const [phase, setPhase] = useState<'in' | 'shown' | 'out'>('out')
 
   useEffect(() => {
     if (isOpen) {
-      setExiting(false)
       setVisible(true)
+      setPhase('in')
+      // one frame later: start slide-in
+      const raf = requestAnimationFrame(() => setPhase('shown'))
+      return () => cancelAnimationFrame(raf)
     } else if (visible) {
-      setExiting(true)
-      const t = setTimeout(() => {
-        setVisible(false)
-        setExiting(false)
-      }, 160)
+      setPhase('out')
+      const t = setTimeout(() => setVisible(false), 220)
       return () => clearTimeout(t)
     }
   }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -124,6 +129,8 @@ function VirtualKeyboard() {
   const layout  = isEmoji ? null : LAYOUTS[activeLanguage as keyof typeof LAYOUTS]
   const dir     = layout?.direction ?? 'ltr'
 
+  const shown = phase === 'shown'
+
   return (
     <div
       style={{
@@ -133,9 +140,10 @@ function VirtualKeyboard() {
         userSelect: 'none',
         backgroundColor: '#CDD1D6',
         boxShadow: '0 -2px 12px rgba(0,0,0,0.15)',
-        opacity: exiting ? 0 : 1,
-        transition: 'opacity 160ms ease',
         position: 'relative',
+        transform:  shown ? 'translateY(0)'    : 'translateY(100%)',
+        opacity:    shown ? 1                  : 0,
+        transition: shown ? ENTER_TRANSITION   : EXIT_TRANSITION,
         '--vkb-key-min-w': 'clamp(28px, 5.5vw, 72px)',
         '--vkb-key-h':     'clamp(42px, 5.5vh, 58px)',
         '--vkb-key-font':  'clamp(14px, 1.8vw, 18px)',

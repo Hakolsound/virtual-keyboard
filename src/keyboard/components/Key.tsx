@@ -125,6 +125,11 @@ function Key({ keyDef }: KeyProps) {
     if (isBackspace) cancelBsRepeat()
   }, [isBackspace, cancelBsRepeat])
 
+  const onPointerCancel = useCallback(() => {
+    pressedRef.current = false
+    cancelBsRepeat()
+  }, [cancelBsRepeat])
+
   void isSpace; void isLang // cosmetic flags, bg handled above
 
   return (
@@ -155,6 +160,7 @@ function Key({ keyDef }: KeyProps) {
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerLeave}
+      onPointerCancel={onPointerCancel}
       onContextMenu={e => e.preventDefault()}
     >
       {label}
