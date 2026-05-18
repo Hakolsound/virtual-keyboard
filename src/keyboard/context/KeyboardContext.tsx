@@ -103,6 +103,8 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
     }
 
     const onFocusOut = (_e: FocusEvent) => {
+      // 400ms gives autofill popups, payment pickers, and other browser UI
+      // time to resolve without incorrectly closing the keyboard.
       pendingClose.current = setTimeout(() => {
         const active = document.activeElement
         if (!isTextInput(active)) {
@@ -110,7 +112,7 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
           targetRef.current = null
         }
         pendingClose.current = null
-      }, 120)
+      }, 400)
     }
 
     document.addEventListener('focusin',  onFocusIn)

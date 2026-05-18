@@ -11,9 +11,8 @@ function VirtualKeyboard() {
   const { isOpen, activeLanguage } = useKeyboard()
   const { isSettingsOpen } = useSettings()
 
-  const [visible, setVisible]   = useState(false)
-  const [exiting, setExiting]   = useState(false)
-  const heightRef               = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  const [exiting, setExiting] = useState(false)
 
   // ── show / hide with slide animation ──────────────────────────────────────
   useEffect(() => {
@@ -30,25 +29,6 @@ function VirtualKeyboard() {
     }
   }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── update --vkb-height on root so page can pad ───────────────────────────
-  useEffect(() => {
-    const el = heightRef.current
-    if (!el) return
-    const update = () => {
-      const h = el.getBoundingClientRect().height
-      document.documentElement.style.setProperty('--vkb-height', `${h}px`)
-    }
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [visible])
-
-  useEffect(() => {
-    if (!visible) {
-      document.documentElement.style.setProperty('--vkb-height', '0px')
-    }
-  }, [visible])
-
   if (!visible) return null
 
   const isEmoji  = activeLanguage === 'emoji'
@@ -57,9 +37,8 @@ function VirtualKeyboard() {
 
   return (
     <div
-      ref={heightRef}
       className={[
-        'fixed bottom-0 left-0 right-0 z-[2147483647]',
+        'w-full',
         'bg-white border-t border-gray-200 shadow-[0_-4px_24px_rgba(0,0,0,0.10)]',
         'flex flex-col select-none',
         exiting ? 'animate-kbd-slide-down' : 'animate-kbd-slide-up',

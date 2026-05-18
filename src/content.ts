@@ -22,10 +22,11 @@ function mountKeyboard() {
   // intercepts touches meant for the page. Inner elements opt back in.
   host.style.cssText = [
     'position: fixed',
-    'inset: 0',
+    'bottom: 0',
+    'left: 0',
+    'right: 0',
     'z-index: 2147483647',
     'pointer-events: none',
-    'overflow: hidden',
   ].join(';')
 
   document.documentElement.appendChild(host)
@@ -39,8 +40,11 @@ function mountKeyboard() {
 
   // ── Mount point — re-enables pointer events for the keyboard itself ────────
   const mountEl = document.createElement('div')
-  mountEl.style.cssText = 'pointer-events: auto; position: absolute; bottom: 0; left: 0; right: 0;'
+  mountEl.style.cssText = 'pointer-events: auto; width: 100%;'
   shadow.appendChild(mountEl)
+
+  // ── Suppress browser autofill popups on all inputs ────────────────────────
+  suppressAutofill()
 
   // ── React root ─────────────────────────────────────────────────────────────
   const root = createRoot(mountEl)
@@ -48,6 +52,26 @@ function mountKeyboard() {
 
   // ── Viewport meta — prevent Chrome zoom on input focus ────────────────────
   ensureViewportMeta()
+}
+
+function suppressAutofill() {
+  const apply = (el: HTMLInputElement) => {
+    if (!el.getAttribute('autocomplete')) {
+      el.setAttribute('autocomplete', 'off')
+    }
+  }
+  // Apply to existing inputs
+  document.querySelectorAll<HTMLInputElement>('input').forEach(apply)
+  // Watch for new inputs added dynamically
+  const mo = new MutationObserver(mutations => {
+    for (const m of mutations) {
+      m.addedNodes.forEach(node => {
+        if (node instanceof HTMLInputElement) apply(node)
+        if (node instanceof HTMLElement) node.querySelectorAll<HTMLInputElement>('input').forEach(apply)
+      })
+    }
+  })
+  mo.observe(document.body, { childList: true, subtree: true })
 }
 
 function ensureViewportMeta() {
