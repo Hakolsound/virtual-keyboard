@@ -1,97 +1,110 @@
 import { memo, useEffect, useState } from 'react'
 import { useKeyboard } from '../context/KeyboardContext'
 import { useSettings } from '../context/SettingsContext'
-import { LAYOUTS, LANGUAGE_LABELS } from '../layouts'
+import { LAYOUTS } from '../layouts'
 import type { LanguageCode } from '../layouts'
 import KeyboardHeader from './KeyboardHeader'
 import KeyRow from './KeyRow'
 import EmojiPanel from './EmojiPanel'
 import SettingsModal from './SettingsModal'
 
+const LANGUAGE_NAMES: Record<LanguageCode, string> = {
+  en:      'English',
+  he:      'עברית',
+  es:      'Español',
+  'pt-br': 'Português',
+  emoji:   'Emoji',
+}
+
 function GlobePopover() {
   const { activeLanguage, setLanguage, closeGlobe } = useKeyboard()
   const { enabledLanguages, openSettings } = useSettings()
 
+  // Globe key is ~26% from left (after ⇧ 1.5x and 123 1x out of 11.5 total flex)
+  // Position popover so its left edge starts above the globe key
   return (
     <>
-      {/* Tap-outside dismiss overlay */}
+      {/* Tap-outside dismiss */}
       <div
         style={{ position: 'fixed', inset: 0, zIndex: 9 }}
         onPointerDown={e => { e.preventDefault(); closeGlobe() }}
       />
-      {/* Compact iPhone-style floating panel anchored above the globe key area */}
+      {/* iPhone-style vertical language list */}
       <div style={{
         position: 'absolute',
-        bottom: 'calc(100% + 8px)',
-        left: '8px',
+        bottom: 'calc(100% + 6px)',
+        left: 'clamp(8px, 18%, 140px)',
         zIndex: 10,
-        backgroundColor: '#1C1C1E',
-        borderRadius: '14px',
-        padding: '8px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
-        minWidth: '180px',
-        animation: 'vkb-pop-in 160ms cubic-bezier(0.34,1.56,0.64,1) both',
+        backgroundColor: '#2C2C2E',
+        borderRadius: '13px',
+        overflow: 'hidden',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+        minWidth: '200px',
+        animation: 'vkb-pop-in 180ms cubic-bezier(0.34,1.4,0.64,1) both',
+        transformOrigin: 'bottom left',
       }}>
         <style>{`
           @keyframes vkb-pop-in {
-            from { opacity: 0; transform: scale(0.85) translateY(8px); }
-            to   { opacity: 1; transform: scale(1)    translateY(0);   }
+            from { opacity: 0; transform: scale(0.82); }
+            to   { opacity: 1; transform: scale(1); }
           }
         `}</style>
 
-        {/* Language chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-          {enabledLanguages.map((code: LanguageCode) => (
-            <button
-              key={code}
-              type="button"
-              style={{
-                padding: '7px 16px',
-                borderRadius: '10px',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '15px',
-                fontWeight: '600',
-                backgroundColor: activeLanguage === code ? '#007AFF' : '#3A3A3C',
-                color: '#FFFFFF',
-                touchAction: 'manipulation',
-                minWidth: '52px',
-                letterSpacing: '0.3px',
-              }}
-              onPointerDown={e => { e.preventDefault(); setLanguage(code) }}
-              onContextMenu={e => e.preventDefault()}
-            >
-              {LANGUAGE_LABELS[code]}
-            </button>
-          ))}
-        </div>
-
-        {/* Divider + Settings */}
-        <div style={{ borderTop: '1px solid #3A3A3C', paddingTop: '6px' }}>
+        {/* Language rows */}
+        {enabledLanguages.map((code: LanguageCode, i) => (
           <button
+            key={code}
             type="button"
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               width: '100%',
-              padding: '7px 12px',
-              borderRadius: '8px',
+              padding: '12px 16px',
               border: 'none',
+              borderBottom: i < enabledLanguages.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
               cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '500',
-              backgroundColor: 'transparent',
-              color: '#8E8E93',
+              fontSize: '15px',
+              fontWeight: activeLanguage === code ? '600' : '400',
+              backgroundColor: activeLanguage === code ? '#007AFF' : 'transparent',
+              color: '#FFFFFF',
               touchAction: 'manipulation',
               textAlign: 'left',
             }}
-            onPointerDown={e => { e.preventDefault(); openSettings(); closeGlobe() }}
+            onPointerDown={e => { e.preventDefault(); setLanguage(code) }}
             onContextMenu={e => e.preventDefault()}
           >
-            ⚙ Settings
+            <span>{LANGUAGE_NAMES[code]}</span>
+            {activeLanguage === code && (
+              <span style={{ fontSize: '13px', opacity: 0.9 }}>✓</span>
+            )}
           </button>
-        </div>
+        ))}
+
+        {/* Settings row */}
+        <button
+          type="button"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            width: '100%',
+            padding: '11px 16px',
+            border: 'none',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '400',
+            backgroundColor: 'transparent',
+            color: '#AEAEB2',
+            touchAction: 'manipulation',
+            textAlign: 'left',
+          }}
+          onPointerDown={e => { e.preventDefault(); openSettings(); closeGlobe() }}
+          onContextMenu={e => e.preventDefault()}
+        >
+          ⚙ Keyboard Settings
+        </button>
       </div>
     </>
   )

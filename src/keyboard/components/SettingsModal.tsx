@@ -8,7 +8,7 @@ const LANGUAGE_NAMES: Record<LanguageCode, string> = {
   en:      'English',
   he:      'Hebrew  עברית',
   es:      'Spanish  Español',
-  'pt-br': 'Portuguese  Português (BR)',
+  'pt-br': 'Portuguese  Português',
   emoji:   'Emoji  😀',
 }
 
@@ -16,7 +16,6 @@ function SettingsModal() {
   const { isSettingsOpen, closeSettings, enabledLanguages, toggleLanguage, getLabel, availableLanguages } = useSettings()
   const { activeLanguage, setLanguage } = useKeyboard()
 
-  // If the active language gets disabled, switch to first enabled
   useEffect(() => {
     if (!enabledLanguages.includes(activeLanguage) && enabledLanguages.length > 0) {
       setLanguage(enabledLanguages[0])
@@ -32,72 +31,152 @@ function SettingsModal() {
   return (
     /* Backdrop */
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center bg-black/40"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.45)',
+      }}
       onPointerDown={e => { if (e.target === e.currentTarget) closeSettings() }}
     >
       {/* Modal card */}
       <div
-        className="bg-white rounded-2xl shadow-2xl w-80 max-w-[90vw] animate-modal-in overflow-hidden"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '16px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          width: '300px',
+          maxWidth: '90%',
+          overflow: 'hidden',
+          animation: 'vkb-modal-in 200ms cubic-bezier(0.34,1.4,0.64,1) both',
+        }}
         onPointerDown={e => e.stopPropagation()}
       >
+        <style>{`
+          @keyframes vkb-modal-in {
+            from { opacity: 0; transform: scale(0.88); }
+            to   { opacity: 1; transform: scale(1); }
+          }
+        `}</style>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">Keyboard Languages</h2>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 18px 14px',
+          borderBottom: '1px solid #F0F0F5',
+        }}>
+          <span style={{ fontSize: '16px', fontWeight: '600', color: '#1C1C1E' }}>
+            Keyboard Languages
+          </span>
           <button
             type="button"
             aria-label="Close settings"
-            className="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 transition-colors touch-manipulation"
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              border: 'none',
+              backgroundColor: '#E5E5EA',
+              color: '#6C6C70',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              fontWeight: '700',
+              touchAction: 'manipulation',
+            }}
             onPointerDown={e => { e.preventDefault(); closeSettings() }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            ✕
           </button>
         </div>
 
         {/* Language list */}
-        <div className="px-4 py-2">
-          {availableLanguages.map(code => {
-            const isEnabled  = enabledLanguages.includes(code)
-            const isLastOn   = enabledLanguages.length === 1 && isEnabled
+        <div style={{ padding: '4px 0' }}>
+          {availableLanguages.map((code, i) => {
+            const isEnabled = enabledLanguages.includes(code)
+            const isLastOn  = enabledLanguages.length === 1 && isEnabled
+            const isLast    = i === availableLanguages.length - 1
             return (
-              <div key={code} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-gray-500 w-8 text-center">{getLabel(code)}</span>
-                  <span className="text-sm text-gray-700">{LANGUAGE_NAMES[code]}</span>
+              <div
+                key={code}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 18px',
+                  borderBottom: isLast ? 'none' : '1px solid #F2F2F7',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    color: '#8E8E93',
+                    width: '32px',
+                    textAlign: 'center',
+                  }}>
+                    {getLabel(code)}
+                  </span>
+                  <span style={{ fontSize: '14px', color: '#1C1C1E' }}>
+                    {LANGUAGE_NAMES[code]}
+                  </span>
                 </div>
 
-                {/* Toggle switch */}
+                {/* iOS toggle switch */}
                 <button
                   type="button"
                   role="switch"
                   aria-checked={isEnabled}
                   aria-label={`Toggle ${LANGUAGE_NAMES[code]}`}
                   disabled={isLastOn}
-                  className={[
-                    'relative w-11 h-6 rounded-full transition-colors duration-200 touch-manipulation',
-                    isEnabled ? 'bg-blue-500' : 'bg-gray-300',
-                    isLastOn  ? 'opacity-50 cursor-not-allowed' : '',
-                  ].join(' ')}
+                  style={{
+                    position: 'relative',
+                    width: '48px',
+                    height: '28px',
+                    borderRadius: '14px',
+                    border: 'none',
+                    cursor: isLastOn ? 'not-allowed' : 'pointer',
+                    backgroundColor: isEnabled ? '#34C759' : '#E5E5EA',
+                    opacity: isLastOn ? 0.45 : 1,
+                    transition: 'background-color 200ms',
+                    touchAction: 'manipulation',
+                    flexShrink: 0,
+                  }}
                   onPointerDown={e => { e.preventDefault(); if (!isLastOn) handleToggle(code) }}
                 >
-                  <span
-                    className={[
-                      'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200',
-                      isEnabled ? 'translate-x-5' : 'translate-x-0',
-                    ].join(' ')}
-                  />
+                  <span style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: isEnabled ? '22px' : '2px',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: '#FFFFFF',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.25)',
+                    transition: 'left 200ms',
+                  }} />
                 </button>
               </div>
             )
           })}
         </div>
 
-        {/* Footer note */}
-        <p className="text-xs text-gray-400 text-center pb-4 px-4">
-          At least one language must remain enabled
-        </p>
+        {/* Footer */}
+        <div style={{
+          padding: '10px 18px 14px',
+          borderTop: '1px solid #F0F0F5',
+        }}>
+          <p style={{ fontSize: '12px', color: '#AEAEB2', textAlign: 'center', margin: 0 }}>
+            At least one language must remain enabled
+          </p>
+        </div>
       </div>
     </div>
   )

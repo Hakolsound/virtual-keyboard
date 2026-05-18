@@ -23,6 +23,8 @@ function Key({ keyDef }: KeyProps) {
   const pressedRef     = useRef(false)
   const bsDelayRef     = useRef<ReturnType<typeof setTimeout>  | null>(null)
   const bsRepeatRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+  const swipeStartXRef = useRef<number | null>(null)
+  const swipeDeltaRef  = useRef(0)
 
   const cancelBsRepeat = useCallback(() => {
     if (bsDelayRef.current  !== null) { clearTimeout(bsDelayRef.current);   bsDelayRef.current  = null }
@@ -119,20 +121,47 @@ function Key({ keyDef }: KeyProps) {
         bsRepeatRef.current = setInterval(backspace, 80)
       }, 400)
     }
-  }, [isBackspace, backspace])
+    if (isSpace) {
+      swipeStartXRef.current = e.clientX
+      swipeDeltaRef.current  = 0
+    }
+  }, [isBackspace, isSpace, backspace])
+
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    if (isSpace && swipeStartXRef.current !== null) {
+      swipeDeltaRef.current = e.clientX - swipeStartXRef.current
+    }
+  }, [isSpace])
 
   const onPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     setPressed(false)
     if (isBackspace) { cancelBsRepeat(); return }
     if (!pressedRef.current) return
     pressedRef.current = false
+
+    // Space bar swipe → cycle language
+    if (isSpace && Math.abs(swipeDeltaRef.current) > 35) {
+      const idx = enabledLanguages.indexOf(activeLanguage)
+      const next = swipeDeltaRef.current > 0
+        ? enabledLanguages[(idx + 1) % enabledLanguages.length]
+        : enabledLanguages[(idx - 1 + enabledLanguages.length) % enabledLanguages.length]
+      setLanguage(next)
+      swipeStartXRef.current = null
+      swipeDeltaRef.current  = 0
+      return
+    }
+    swipeStartXRef.current = null
+    swipeDeltaRef.current  = 0
+
     if (keyDef.type === 'char') handleCharPress()
     else handleActionPress()
-  }, [isBackspace, cancelBsRepeat, keyDef, handleCharPress, handleActionPress])
+  }, [isBackspace, isSpace, cancelBsRepeat, enabledLanguages, activeLanguage, setLanguage, keyDef, handleCharPress, handleActionPress])
 
   const onPointerLeave = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     pressedRef.current = false
     setPressed(false)
+    swipeStartXRef.current = null
+    swipeDeltaRef.current  = 0
     if (isBackspace) cancelBsRepeat()
   }, [isBackspace, cancelBsRepeat])
 
@@ -170,6 +199,7 @@ function Key({ keyDef }: KeyProps) {
         letterSpacing: isSpace ? '0' : undefined,
       }}
       onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerLeave}
       onPointerCancel={onPointerCancel}
