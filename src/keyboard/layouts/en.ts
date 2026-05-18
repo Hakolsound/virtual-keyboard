@@ -22,13 +22,11 @@ export const enLayout: KeyboardLayout = {
   ],
 
   bottomRow: [
-    { type: 'action', action: 'shift',     label: '⇧',    flex: 1.5 },
-    { type: 'char',   base: "'",  shift: '"'              },
-    { type: 'char',   base: '-',  shift: '_'              },
-    { type: 'char',   base: '.',  shift: '>'              },
-    { type: 'action', action: 'space',      label: 'space', flex: 3   },
-    { type: 'action', action: 'lang-cycle', label: '🌐'              },
-    { type: 'action', action: 'backspace',  label: '⌫'               },
-    { type: 'action', action: 'done',       label: 'Done', flex: 1.5 },
+    { type: 'action', action: 'shift',          label: '⇧',    flex: 1.5 },
+    { type: 'action', action: 'toggle-numbers', label: '123'             },
+    { type: 'action', action: 'toggle-globe',   label: '🌐'              },
+    { type: 'action', action: 'space',          label: 'space', flex: 5  },
+    { type: 'action', action: 'done',           label: 'Done',  flex: 2  },
+    { type: 'action', action: 'backspace',      label: '⌫'               },
   ],
 }

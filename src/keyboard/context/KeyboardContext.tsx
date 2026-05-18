@@ -17,27 +17,38 @@ interface KeyboardState {
   cursorPos:      number
   shift:          ShiftState
   activeLanguage: LanguageCode
+  showNumbers:    boolean
+  globeOpen:      boolean
 }
 
 type KeyboardAction =
-  | { type: 'OPEN';         value: string; cursorPos: number }
+  | { type: 'OPEN';           value: string; cursorPos: number }
   | { type: 'CLOSE' }
-  | { type: 'SET_VALUE';    value: string; cursorPos: number }
-  | { type: 'SET_SHIFT';    shift: ShiftState }
-  | { type: 'SET_LANGUAGE'; code: LanguageCode }
+  | { type: 'SET_VALUE';      value: string; cursorPos: number }
+  | { type: 'SET_SHIFT';      shift: ShiftState }
+  | { type: 'SET_LANGUAGE';   code: LanguageCode }
+  | { type: 'TOGGLE_NUMBERS' }
+  | { type: 'TOGGLE_GLOBE' }
+  | { type: 'CLOSE_GLOBE' }
 
 function reducer(state: KeyboardState, action: KeyboardAction): KeyboardState {
   switch (action.type) {
     case 'OPEN':
-      return { ...state, isOpen: true, value: action.value, cursorPos: action.cursorPos }
+      return { ...state, isOpen: true, value: action.value, cursorPos: action.cursorPos, globeOpen: false }
     case 'CLOSE':
-      return { ...state, isOpen: false }
+      return { ...state, isOpen: false, globeOpen: false }
     case 'SET_VALUE':
       return { ...state, value: action.value, cursorPos: action.cursorPos }
     case 'SET_SHIFT':
       return { ...state, shift: action.shift }
     case 'SET_LANGUAGE':
-      return { ...state, activeLanguage: action.code }
+      return { ...state, activeLanguage: action.code, globeOpen: false }
+    case 'TOGGLE_NUMBERS':
+      return { ...state, showNumbers: !state.showNumbers }
+    case 'TOGGLE_GLOBE':
+      return { ...state, globeOpen: !state.globeOpen }
+    case 'CLOSE_GLOBE':
+      return { ...state, globeOpen: false }
     default:
       return state
   }
@@ -50,12 +61,17 @@ interface KeyboardContextValue {
   shift:          ShiftState
   activeLanguage: LanguageCode
   activeTarget:   TextTarget | null
+  showNumbers:    boolean
+  globeOpen:      boolean
   insert:         (char: string) => void
   backspace:      () => void
   clear:          () => void
   done:           () => void
   setShift:       (s: ShiftState) => void
   setLanguage:    (code: LanguageCode) => void
+  toggleNumbers:  () => void
+  toggleGlobe:    () => void
+  closeGlobe:     () => void
 }
 
 const KeyboardContext = createContext<KeyboardContextValue | null>(null)
@@ -77,6 +93,8 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
     cursorPos:      0,
     shift:          'off',
     activeLanguage: 'en',
+    showNumbers:    false,
+    globeOpen:      false,
   })
 
   const targetRef      = useRef<TextTarget | null>(null)
@@ -178,6 +196,18 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_LANGUAGE', code })
   }, [])
 
+  const toggleNumbers = useCallback(() => {
+    dispatch({ type: 'TOGGLE_NUMBERS' })
+  }, [])
+
+  const toggleGlobe = useCallback(() => {
+    dispatch({ type: 'TOGGLE_GLOBE' })
+  }, [])
+
+  const closeGlobe = useCallback(() => {
+    dispatch({ type: 'CLOSE_GLOBE' })
+  }, [])
+
   return (
     <KeyboardContext.Provider value={{
       isOpen:         state.isOpen,
@@ -186,12 +216,17 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
       shift:          state.shift,
       activeLanguage: state.activeLanguage,
       activeTarget:   targetRef.current,
+      showNumbers:    state.showNumbers,
+      globeOpen:      state.globeOpen,
       insert,
       backspace,
       clear,
       done,
       setShift,
       setLanguage,
+      toggleNumbers,
+      toggleGlobe,
+      closeGlobe,
     }}>
       {children}
     </KeyboardContext.Provider>

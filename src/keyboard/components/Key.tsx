@@ -18,7 +18,8 @@ interface KeyProps {
 }
 
 function Key({ keyDef }: KeyProps) {
-  const { shift, insert, backspace, done, setShift, setLanguage, activeLanguage } = useKeyboard()
+  const { shift, insert, backspace, done, setShift, setLanguage, activeLanguage,
+          toggleNumbers, showNumbers, toggleGlobe, globeOpen } = useKeyboard()
   const { enabledLanguages, openSettings } = useSettings()
   const pressedRef = useRef(false)
 
@@ -48,19 +49,23 @@ function Key({ keyDef }: KeyProps) {
         setLanguage(next)
         break
       }
-      case 'settings': return openSettings()
+      case 'toggle-numbers': return toggleNumbers()
+      case 'toggle-globe':   return toggleGlobe()
+      case 'settings':       return openSettings()
     }
   }, [keyDef, shift, insert, done, backspace, setShift, setLanguage, activeLanguage, enabledLanguages, openSettings])
 
   const longPress = useLongPress({ onPress: backspace })
 
-  const isBackspace = keyDef.type === 'action' && (keyDef as ActionKey).action === 'backspace'
-  const isShift     = keyDef.type === 'action' && (keyDef as ActionKey).action === 'shift'
-  const isDone      = keyDef.type === 'action' && (keyDef as ActionKey).action === 'done'
-  const isLang      = keyDef.type === 'action' && (keyDef as ActionKey).action === 'lang-cycle'
-  const isSpace     = keyDef.type === 'action' && (keyDef as ActionKey).action === 'space'
-  const isShiftOn   = isShift && shift !== 'off'
-  const isShiftLock = isShift && shift === 'lock'
+  const isBackspace    = keyDef.type === 'action' && (keyDef as ActionKey).action === 'backspace'
+  const isShift        = keyDef.type === 'action' && (keyDef as ActionKey).action === 'shift'
+  const isDone         = keyDef.type === 'action' && (keyDef as ActionKey).action === 'done'
+  const isLang         = keyDef.type === 'action' && (keyDef as ActionKey).action === 'lang-cycle'
+  const isSpace        = keyDef.type === 'action' && (keyDef as ActionKey).action === 'space'
+  const isToggleNums   = keyDef.type === 'action' && (keyDef as ActionKey).action === 'toggle-numbers'
+  const isToggleGlobe  = keyDef.type === 'action' && (keyDef as ActionKey).action === 'toggle-globe'
+  const isShiftOn      = isShift && shift !== 'off'
+  const isShiftLock    = isShift && shift === 'lock'
 
   const flex = keyDef.flex ?? 1
 
@@ -87,6 +92,10 @@ function Key({ keyDef }: KeyProps) {
     bg = '#4C8BF5'; color = '#FFFFFF'
   } else if (isShiftOn) {
     bg = '#E8E8ED'; color = '#1C1C1E'
+  } else if (isToggleNums && showNumbers) {
+    bg = '#5A6370'; color = '#FFFFFF'
+  } else if (isToggleGlobe && globeOpen) {
+    bg = '#5A6370'; color = '#FFFFFF'
   }
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
@@ -108,7 +117,7 @@ function Key({ keyDef }: KeyProps) {
     if (isBackspace) longPress.onPointerLeave(e)
   }, [isBackspace, longPress])
 
-  void isSpace // used for visual only (special bg already handles it)
+  void isSpace; void isLang // cosmetic flags, bg handled above
 
   return (
     <button

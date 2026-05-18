@@ -10,6 +10,8 @@ export type KeyAction =
   | 'shift'
   | 'lang-cycle'
   | 'settings'
+  | 'toggle-numbers'
+  | 'toggle-globe'
 
 export interface CharKey {
   type: 'char'

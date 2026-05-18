@@ -26,12 +26,11 @@ export const heLayout: KeyboardLayout = {
   ],
 
   bottomRow: [
-    { type: 'action', action: 'shift',     label: '⇧',    flex: 1.5 },
-    { type: 'char',   base: '-',  shift: '_'              },
-    { type: 'char',   base: '.',  shift: ':'              },
-    { type: 'action', action: 'space',      label: 'רווח', flex: 3   },
-    { type: 'action', action: 'lang-cycle', label: '🌐'              },
-    { type: 'action', action: 'backspace',  label: '⌫'               },
-    { type: 'action', action: 'done',       label: 'סיום', flex: 1.5 },
+    { type: 'action', action: 'shift',          label: '⇧',    flex: 1.5 },
+    { type: 'action', action: 'toggle-numbers', label: '123'             },
+    { type: 'action', action: 'toggle-globe',   label: '🌐'              },
+    { type: 'action', action: 'space',          label: 'רווח', flex: 5  },
+    { type: 'action', action: 'done',           label: 'סיום', flex: 2  },
+    { type: 'action', action: 'backspace',      label: '⌫'               },
   ],
 }
