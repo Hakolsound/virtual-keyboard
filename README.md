@@ -15,13 +15,59 @@ The extension injects a React app into every Chrome tab using a Shadow DOM overl
 ```
 Chrome tab (any web app)
 └── Shadow DOM overlay  ← our extension
-    └── Virtual Keyboard (React + Tailwind)
-        ├── Language chips  (EN · עב · ES · PT · 😀)
-        ├── Number row
+    └── Virtual Keyboard (React, iOS-style design)
+        ├── Number row   (toggle with 123 key)
         ├── Letter rows  (layout switches with language)
-        ├── Bottom row   (Shift · ' · - · . · Space · Clear · ⌫ · Done)
-        └── Settings modal  (toggle languages on/off)
+        └── Bottom row   (⇧ · 123 · 🌐 · Space · Done · ⌫)
 ```
+
+---
+
+## Keyboard layout
+
+```
+[ q ][ w ][ e ][ r ][ t ][ y ][ u ][ i ][ o ][ p ]
+  [ a ][ s ][ d ][ f ][ g ][ h ][ j ][ k ][ l ]
+[ ⇧ ][ z ][ x ][ c ][ v ][ b ][ n ][ m ][ ⌫ ]
+[ 123 ][  🌐  ][        space        ][ Done ]
+```
+
+- **⇧** — single tap: next char uppercase · double tap: caps lock (blue) · third tap: off
+- **123** — toggle number row on/off
+- **🌐** — tap to open language picker popover · swipe space bar left/right to cycle languages
+- **Space** — insert space · swipe left/right to switch language · hold 3 seconds → staff settings
+- **Done** — dismiss keyboard and blur the input
+- **⌫** — tap to delete · hold to repeat-delete
+
+---
+
+## Emoji panel
+
+Tap 🌐 and select **Emoji** to open the emoji panel:
+
+- Horizontal paged categories (swipe or tap icons)
+- Visual search bar (tap a category name to filter)
+- **ABC** button returns to the previous language
+- **⌫** backspace in emoji context
+- Full grapheme cluster deletion (handles multi-codepoint emoji like 👨‍👩‍👧)
+
+---
+
+## Staff settings (PIN protected)
+
+Settings are hidden from kiosk users and accessible only to staff.
+
+**To open settings:** press and hold the **space bar for 3 seconds**.
+
+A PIN entry screen appears. Enter the PIN to access keyboard settings.
+
+> **PIN code: `3924`**
+
+In the settings screen you can:
+- Enable or disable individual languages
+- At least one language must remain enabled
+
+Settings are saved in `localStorage` and persist across page reloads.
 
 ---
 
@@ -47,54 +93,16 @@ npm run build
 
 The built extension lands in `dist/`.
 
-### 2. Edit the kiosk URL
+### 2. Load the extension in Chrome
 
-Open `scripts\install.bat` in Notepad and change this line to your kiosk app URL:
+1. Open Chrome and navigate to `chrome://extensions`
+2. Enable **Developer mode** (toggle in the top-right corner)
+3. Click **Load unpacked**
+4. Select the `dist\` folder inside this project
 
-```bat
-set "TARGET_URL=https://your-kiosk-app.com"
-```
+### 3. Suppress the Windows touch keyboard
 
-### 3. Run the installer (as Administrator)
-
-Right-click `scripts\install.bat` → **Run as administrator**
-
-The script will:
-- Disable the Windows touch keyboard (registry + kill TabTip.exe)
-- Register a startup task to keep TabTip suppressed after reboot
-- Create a **Kiosk** shortcut on the Desktop that launches Chrome with the extension loaded
-
-### 4. Launch
-
-Double-click the **Kiosk** shortcut on the Desktop.
-
-Chrome starts in kiosk mode with the virtual keyboard extension active.
-
----
-
-## Manual installation (step by step)
-
-Use this if you prefer not to run the installer script, or want to understand each step.
-
-### Step 1 — Build the extension
-
-```bat
-npm install
-npm run build
-```
-
-Output: `dist\content.js`, `dist\manifest.json`, `dist\icons\`
-
-### Step 2 — Suppress the Windows touch keyboard
-
-Open **Registry Editor** (`regedit.exe`) as Administrator and create these values:
-
-| Path | Value name | Type | Data |
-|------|-----------|------|------|
-| `HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\TabletPC` | `PreventLaunchingTouchKeyboard` | DWORD | `1` |
-| `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\TabletTip\1.7` | `DisableNewKeyboardExperience` | DWORD | `1` |
-
-Or run in an elevated Command Prompt:
+Run in an elevated Command Prompt (as Administrator):
 
 ```bat
 reg add "HKLM\SOFTWARE\Policies\Microsoft\TabletPC" /v PreventLaunchingTouchKeyboard /t REG_DWORD /d 1 /f
@@ -102,22 +110,7 @@ reg add "HKLM\SOFTWARE\Microsoft\TabletTip\1.7"    /v DisableNewKeyboardExperien
 taskkill /F /IM TabTip.exe
 ```
 
-### Step 3 — Load the extension in Chrome
-
-Open Chrome and go to:
-
-```
-chrome://extensions
-```
-
-1. Enable **Developer mode** (toggle in the top-right corner)
-2. Click **Load unpacked**
-3. Select the `dist\` folder inside this project
-4. The extension appears in the list as **Virtual Keyboard**
-
-> For a permanent kiosk installation, skip the UI and use the command-line flag instead (see Step 4).
-
-### Step 4 — Launch Chrome in kiosk mode with the extension
+### 4. Launch Chrome in kiosk mode with the extension
 
 Replace `C:\path\to\dist` with the actual path to the `dist\` folder.
 
@@ -133,18 +126,17 @@ Replace `C:\path\to\dist` with the actual path to the `dist\` folder.
   https://your-kiosk-app.com
 ```
 
-To create a Desktop shortcut manually:
-1. Right-click Desktop → **New → Shortcut**
-2. Paste the full command above as the location
-3. Name it **Kiosk**
+---
 
-### Step 5 — Verify it works
+## Updating the extension
 
-1. Open any page with a text input
-2. Tap (or click) the input field
-3. The virtual keyboard should slide up from the bottom
-4. Type a few characters — they appear in the input
-5. Tap **Done** — the keyboard dismisses
+A convenience script is included. From the project root in PowerShell or Command Prompt:
+
+```bat
+.\update.bat
+```
+
+This runs `git pull` + `npm run build` and pauses so you can review the output. After it completes, go to `chrome://extensions` and click the **reload** icon on the Virtual Keyboard card.
 
 ---
 
@@ -162,27 +154,24 @@ After a rebuild, go to `chrome://extensions` and click the **reload** icon on th
 
 ```
 src/
-├── content.ts                  # Extension entry: Shadow DOM mount
-├── dispatcher.ts               # Fires real DOM events on host inputs
+├── content.ts                  # Extension entry: Shadow DOM mount + autofill suppression
+├── dispatcher.ts               # Fires real DOM events on host inputs (React-compatible)
 └── keyboard/
     ├── App.tsx                 # Root: SettingsProvider > KeyboardProvider
-    ├── keyboard.css            # Tailwind base — injected into Shadow DOM
     ├── context/
-    │   ├── KeyboardContext.tsx # Active target, value, shift, focus detection
+    │   ├── KeyboardContext.tsx # Active target, value, shift, focus/blur detection
     │   └── SettingsContext.tsx # Enabled languages, localStorage persistence
     ├── layouts/
     │   ├── types.ts
     │   ├── en.ts  he.ts  es.ts  pt-br.ts  emoji.ts
     │   └── index.ts
-    ├── hooks/
-    │   └── useLongPress.ts     # Hold-to-repeat for Backspace
     └── components/
-        ├── VirtualKeyboard.tsx # Slide animation, responsive sizing
-        ├── KeyboardHeader.tsx  # Language chips + settings gear
+        ├── VirtualKeyboard.tsx # Slide animation, globe popover, settings modal host
+        ├── KeyboardHeader.tsx  # (empty — no visible header)
         ├── KeyRow.tsx
-        ├── Key.tsx             # pointerdown.preventDefault — focus never leaves host input
-        ├── EmojiPanel.tsx      # Scrollable grid, category tabs
-        └── SettingsModal.tsx   # Language toggles, last-language guard
+        ├── Key.tsx             # All pointer handling, press feedback, swipe, hold timers
+        ├── EmojiPanel.tsx      # Paged categories, search, ABC/⌫ bar
+        └── SettingsModal.tsx   # PIN screen + language toggles
 ```
 
 ---
@@ -191,37 +180,20 @@ src/
 
 1. Create `src/keyboard/layouts/xx.ts` following the same structure as `en.ts`
 2. Add it to `src/keyboard/layouts/index.ts` — `LAYOUTS`, `ALL_LANGUAGE_CODES`, `LANGUAGE_LABELS`
-3. Add its display name to `LANGUAGE_NAMES` in `SettingsModal.tsx`
+3. Add its display name to `LANGUAGE_NAMES` in `VirtualKeyboard.tsx` and `SettingsModal.tsx`
 4. Run `npm run build`
 
 ---
 
 ## Troubleshooting
 
-### Windows keyboard still appears
-
-- Make sure the registry keys were set and Chrome was restarted
-- Run `scripts\suppress-tabletip.bat` as Administrator to kill the process manually
-- Check Task Manager for `TabTip.exe` — if it keeps coming back, add the startup task:
-  ```bat
-  schtasks /create /tn "VKB-SuppressTabTip" /tr "taskkill /F /IM TabTip.exe" /sc onlogon /f
-  ```
-
-### Keyboard does not appear on a specific site
-
-- Some sites use custom input components (shadow DOM, `contenteditable`, iframes)
-- `contenteditable` elements are not yet detected — open an issue if needed
-- Iframes on a different origin cannot be accessed by content scripts (browser security)
-
-### Extension not loading
-
-- Confirm the `dist\` folder contains `manifest.json` and `content.js`
-- Chrome must be restarted after running with `--load-extension` for the first time
-- In `chrome://extensions`, check for any error badge on the Virtual Keyboard card
-
-### Keys appear but value does not change in the host app
-
-The host app may use a non-standard input binding. The extension uses the native `HTMLInputElement.prototype` setter to trigger React/Vue synthetic events. If the host uses a completely custom input abstraction, open an issue with details.
+| Problem | Fix |
+|---------|-----|
+| Windows keyboard still appears | Set registry keys, restart Chrome. Run `taskkill /F /IM TabTip.exe` manually if needed. |
+| Keyboard does not appear on a site | Site may use `contenteditable` or cross-origin iframes — not yet supported. |
+| Extension not loading | Confirm `dist\` contains `manifest.json` and `content.js`. Reload extension at `chrome://extensions`. |
+| Keys appear but value doesn't change | Host app may use a non-standard input binding. The extension uses the native `HTMLInputElement.prototype` setter. Open an issue with details. |
+| Settings PIN forgotten | PIN is `3924`. Access by holding the space bar for 3 seconds. |
 
 ---
 
