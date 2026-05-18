@@ -13,7 +13,7 @@ function EmojiPanel() {
   const category = emojiCategories[activeCat]
 
   return (
-    <div className="flex flex-col" style={{ height: 'var(--vkb-body-h, 14rem)' }}>
+    <div className="flex flex-col" style={{ height: '14rem' }}>
       {/* Emoji grid */}
       <div className="flex-1 overflow-y-auto p-2">
         <div className="grid grid-cols-8 gap-1">

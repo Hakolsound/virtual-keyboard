@@ -44,13 +44,10 @@ function VirtualKeyboard() {
         exiting ? 'animate-kbd-slide-down' : 'animate-kbd-slide-up',
       ].join(' ')}
       style={{
-        // Fluid key sizing via CSS custom properties
         '--vkb-key-min-w': 'clamp(2rem, 5.5vw, 5.25rem)',
         '--vkb-key-h':     'clamp(2.75rem, 5.5vh, 4.5rem)',
         '--vkb-key-font':  'clamp(0.85rem, 1.8vw, 1.1rem)',
-        '--vkb-gap':       'clamp(0.2rem, 0.4vw, 0.4rem)',
         '--vkb-emoji-font':'clamp(1.2rem, 2.5vw, 2rem)',
-        '--vkb-body-h':    'clamp(12rem, 28vh, 18rem)',
       } as React.CSSProperties}
     >
       <KeyboardHeader />
@@ -58,10 +55,7 @@ function VirtualKeyboard() {
       {isEmoji ? (
         <EmojiPanel />
       ) : layout ? (
-        <div
-          className="flex flex-col gap-[var(--vkb-gap)] p-[var(--vkb-gap)] pt-2"
-          style={{ height: 'var(--vkb-body-h)' }}
-        >
+        <div className="flex flex-col gap-1 px-1 pb-2 pt-1">
           <KeyRow keys={layout.numberRow} direction={dir} />
           {layout.rows.map((row, i) => (
             <KeyRow key={i} keys={row} direction={dir} />
