@@ -30,12 +30,13 @@ function PinScreen({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: (
           setTimeout(onSuccess, 120)
         } else {
           setShake(true)
-          setTimeout(() => { setShake(false); setDigits('') }, 520)
+          // Shake then auto-dismiss on wrong PIN
+          setTimeout(onCancel, 600)
         }
       }
       return next
     })
-  }, [onSuccess])
+  }, [onSuccess, onCancel])
 
   const del = useCallback(() => setDigits(p => p.slice(0, -1)), [])
 

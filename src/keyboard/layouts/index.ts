@@ -21,6 +21,16 @@ export const LAYOUTS: Record<Exclude<LanguageCode, 'emoji'>, KeyboardLayout> = {
 
 export const ALL_LANGUAGE_CODES: LanguageCode[] = ['en', 'he', 'es', 'pt-br', 'emoji']
 
+import type { KeyDef } from './types'
+export const EMOJI_BOTTOM_ROW: KeyDef[] = [
+  { type: 'action', action: 'shift',          label: '⇧',    flex: 1.5 },
+  { type: 'action', action: 'toggle-numbers', label: '123'             },
+  { type: 'action', action: 'toggle-globe',   label: '🌐'              },
+  { type: 'action', action: 'space',          label: 'space', flex: 5  },
+  { type: 'action', action: 'done',           label: 'Done',  flex: 2  },
+  { type: 'action', action: 'backspace',      label: '⌫'               },
+]
+
 export const LANGUAGE_LABELS: Record<LanguageCode, string> = {
   en:      'EN',
   he:      'עב',
