@@ -80,6 +80,72 @@ Settings are saved in `localStorage` and persist across page reloads.
 
 ---
 
+## New machine setup (step by step)
+
+Complete checklist for setting up a brand-new Windows kiosk machine from scratch.
+
+### Step 1 — Install prerequisites
+
+1. **Google Chrome** — download from google.com/chrome and install
+2. **Node.js 18+** — download from nodejs.org (LTS version) and install  
+   Verify: open Command Prompt and run `node -v`
+3. **Git** — download from git-scm.com and install  
+   Verify: `git --version`
+
+### Step 2 — Clone and build the extension
+
+Open Command Prompt (no admin needed):
+
+```bat
+git clone https://github.com/Hakolsound/virtual-keyboard.git
+cd virtual-keyboard
+npm install
+npm run build
+```
+
+Note the full path to the `dist\` folder — you'll need it in Step 4.  
+Example: `C:\Users\Kiosk\virtual-keyboard\dist`
+
+### Step 3 — Suppress the Windows touch keyboard
+
+Open Command Prompt **as Administrator** (right-click → Run as administrator):
+
+```bat
+reg add "HKLM\SOFTWARE\Policies\Microsoft\TabletPC" /v PreventLaunchingTouchKeyboard /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Microsoft\TabletTip\1.7"    /v DisableNewKeyboardExperience  /t REG_DWORD /d 1 /f
+taskkill /F /IM TabTip.exe
+```
+
+### Step 4 — Load the extension in Chrome
+
+1. Open Chrome → navigate to `chrome://extensions`
+2. Enable **Developer mode** (top-right toggle)
+3. Click **Load unpacked**
+4. Select the `dist\` folder from Step 2
+
+The extension appears in the list as **Virtual Keyboard**.
+
+### Step 5 — Create the kiosk desktop shortcut
+
+Right-click the Desktop → **New → Shortcut**  
+Paste this as the location (replace the two placeholder paths):
+
+```
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,Translate --disable-session-crashed-bubble --hide-crash-restore-bubble --load-extension="C:\Users\Kiosk\virtual-keyboard\dist" https://your-kiosk-app.com
+```
+
+Name the shortcut **Kiosk**, then double-click it to launch.
+
+### Step 6 — Verify everything works
+
+1. The kiosk app opens full-screen
+2. Tap any text field → keyboard slides up from the bottom
+3. Type characters → they appear in the field
+4. Tap **Done** → keyboard dismisses
+5. Hold **space bar 3 seconds** → PIN screen appears (PIN: `3924`) → settings accessible
+
+---
+
 ## Quick start — build & install
 
 ### 1. Clone and build
