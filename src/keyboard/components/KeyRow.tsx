@@ -17,6 +17,7 @@ function KeyRow({ keys, direction }: KeyRowProps) {
         gap: '4px',
         justifyContent: 'center',
         alignItems: 'stretch',
+        minHeight: 'var(--vkb-key-h, 3rem)',
       }}
     >
       {keys.map((keyDef, i) => (

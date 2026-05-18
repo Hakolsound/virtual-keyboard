@@ -28,9 +28,6 @@ function mountKeyboard() {
     'right: 0',
     'z-index: 2147483647',
     'pointer-events: none',
-    'display: flex',
-    'flex-direction: column',
-    'justify-content: flex-end',
   ].join(';')
 
   document.documentElement.appendChild(host)
@@ -44,7 +41,13 @@ function mountKeyboard() {
 
   // ── Mount point — re-enables pointer events for the keyboard itself ────────
   const mountEl = document.createElement('div')
-  mountEl.style.cssText = 'pointer-events: auto; width: 100%; flex-shrink: 0;'
+  mountEl.style.cssText = [
+    'position: fixed',
+    'bottom: 0',
+    'left: 0',
+    'right: 0',
+    'pointer-events: auto',
+  ].join(';')
   shadow.appendChild(mountEl)
 
   // ── Suppress browser autofill popups on all inputs ────────────────────────
