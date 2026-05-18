@@ -1,0 +1,23 @@
+/*
+  Tailwind base injected into Shadow DOM.
+  Using @layer base resets ensure the keyboard looks consistent
+  regardless of the host page's styles.
+*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent host-page font inheritance from leaking in */
+:host {
+  all: initial;
+  font-family: 'Google Sans', 'Roboto', 'Inter', system-ui, sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Smooth keyboard height transition on the host page */
+html {
+  scroll-behavior: smooth;
+}
