@@ -29,10 +29,10 @@ function GlobePopover() {
         style={{ position: 'fixed', inset: 0, zIndex: 9 }}
         onPointerDown={e => { e.preventDefault(); closeGlobe() }}
       />
-      {/* iPhone-style vertical language list */}
+      {/* iPhone-style vertical language list — float just above the bottom row */}
       <div style={{
         position: 'absolute',
-        bottom: 'calc(100% + 6px)',
+        bottom: 'calc(var(--vkb-key-h, 48px) + 18px)',
         left: 'clamp(8px, 18%, 140px)',
         zIndex: 10,
         backgroundColor: '#2C2C2E',
