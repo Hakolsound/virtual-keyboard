@@ -10,8 +10,14 @@ interface KeyRowProps {
 function KeyRow({ keys, direction }: KeyRowProps) {
   return (
     <div
-      className="flex gap-[var(--vkb-gap,0.25rem)] justify-center"
       dir={direction}
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '4px',
+        justifyContent: 'center',
+        alignItems: 'stretch',
+      }}
     >
       {keys.map((keyDef, i) => (
         <Key key={i} keyDef={keyDef} />

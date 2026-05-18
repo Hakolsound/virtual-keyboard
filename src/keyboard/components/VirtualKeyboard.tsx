@@ -37,13 +37,16 @@ function VirtualKeyboard() {
 
   return (
     <div
-      className={[
-        'w-full',
-        'bg-white border-t border-gray-200 shadow-[0_-4px_24px_rgba(0,0,0,0.10)]',
-        'flex flex-col select-none',
-        exiting ? 'animate-kbd-slide-down' : 'animate-kbd-slide-up',
-      ].join(' ')}
       style={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        userSelect: 'none',
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid #e5e7eb',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.10)',
+        opacity: exiting ? 0 : 1,
+        transition: 'opacity 160ms ease',
         '--vkb-key-min-w': 'clamp(2rem, 5.5vw, 5.25rem)',
         '--vkb-key-h':     'clamp(2.75rem, 5.5vh, 4.5rem)',
         '--vkb-key-font':  'clamp(0.85rem, 1.8vw, 1.1rem)',
@@ -55,7 +58,7 @@ function VirtualKeyboard() {
       {isEmoji ? (
         <EmojiPanel />
       ) : layout ? (
-        <div className="flex flex-col gap-1 px-1 pb-2 pt-1">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '4px 4px 8px' }}>
           <KeyRow keys={layout.numberRow} direction={dir} />
           {layout.rows.map((row, i) => (
             <KeyRow key={i} keys={row} direction={dir} />
