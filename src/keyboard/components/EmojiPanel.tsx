@@ -77,6 +77,7 @@ function EmojiPanel() {
               backgroundColor: activeCat === i ? '#FFFFFF' : 'transparent',
               boxShadow:       activeCat === i ? KEY_SHADOW : 'none',
               borderRadius:    activeCat === i ? KEY_RADIUS : '0',
+              filter:          activeCat === i ? 'none' : 'grayscale(1) opacity(0.55)',
               border:          'none',
               cursor:          'pointer',
               userSelect:      'none',
