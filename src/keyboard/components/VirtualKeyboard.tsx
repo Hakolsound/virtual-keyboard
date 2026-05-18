@@ -42,14 +42,13 @@ function VirtualKeyboard() {
         display: 'flex',
         flexDirection: 'column',
         userSelect: 'none',
-        backgroundColor: '#ffffff',
-        borderTop: '1px solid #e5e7eb',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.10)',
+        backgroundColor: '#CDD1D6',
+        boxShadow: '0 -2px 12px rgba(0,0,0,0.15)',
         opacity: exiting ? 0 : 1,
         transition: 'opacity 160ms ease',
-        '--vkb-key-min-w': 'clamp(32px, 5.5vw, 84px)',
-        '--vkb-key-h':     'clamp(44px, 5.5vh, 72px)',
-        '--vkb-key-font':  'clamp(13px, 1.8vw, 18px)',
+        '--vkb-key-min-w': 'clamp(28px, 5.5vw, 72px)',
+        '--vkb-key-h':     'clamp(42px, 5.5vh, 58px)',
+        '--vkb-key-font':  'clamp(14px, 1.8vw, 18px)',
         '--vkb-emoji-font':'clamp(19px, 2.5vw, 32px)',
       } as React.CSSProperties}
     >
@@ -58,7 +57,7 @@ function VirtualKeyboard() {
       {isEmoji ? (
         <EmojiPanel />
       ) : layout ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '4px 4px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '6px 3px 10px' }}>
           <KeyRow keys={layout.numberRow} direction={dir} />
           {layout.rows.map((row, i) => (
             <KeyRow key={i} keys={row} direction={dir} />

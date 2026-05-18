@@ -40,9 +40,9 @@ export const ptBrLayout: KeyboardLayout = {
     { type: 'char',   base: "'",  shift: '"'               },
     { type: 'char',   base: '-',  shift: '_'               },
     { type: 'char',   base: '.',  shift: '>'               },
-    { type: 'action', action: 'space',     label: 'Espaço', flex: 3  },
-    { type: 'action', action: 'clear',     label: 'Limpar'           },
-    { type: 'action', action: 'backspace', label: '⌫'                },
-    { type: 'action', action: 'done',      label: 'Pronto', flex: 1.5 },
+    { type: 'action', action: 'space',      label: 'espaço', flex: 3  },
+    { type: 'action', action: 'lang-cycle', label: '🌐'               },
+    { type: 'action', action: 'backspace',  label: '⌫'                },
+    { type: 'action', action: 'done',       label: 'Pronto', flex: 1.5 },
   ],
 }

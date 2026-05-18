@@ -1,0 +1,119 @@
+
+PS C:\Users\Hakol Backup PC\virtual-keyboard>  scripts\install.bat
+
+C:\Users\Hakol Backup PC\virtual-keyboard>f@echo off
+'f@echo' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\Hakol Backup PC\virtual-keyboard>setlocal
+
+C:\Users\Hakol Backup PC\virtual-keyboard>set "EXT_DIR=C:\Users\Hakol Backup PC\virtual-keyboard\scripts\..\dist"
+
+C:\Users\Hakol Backup PC\virtual-keyboard>set "CHROME=C:\Program Files\Google\Chrome\Application\chrome.exe"
+
+C:\Users\Hakol Backup PC\virtual-keyboard>if not exist "C:\Program Files\Google\Chrome\Application\chrome.exe" set "CHROME=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo.
+
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo ==========================================
+==========================================
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo  Virtual Keyboard - Kiosk Setup
+ Virtual Keyboard - Kiosk Setup
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo ==========================================
+==========================================
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo.
+
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo [1/4] Disabling Windows touch keyboard...
+[1/4] Disabling Windows touch keyboard...
+
+C:\Users\Hakol Backup PC\virtual-keyboard>reg add "HKLM\SOFTWARE\Policies\Microsoft\TabletPC" /v PreventLaunchingTouchKeyboard /t REG_DWORD /d 1 /f  1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>reg add "HKLM\SOFTWARE\Microsoft\TabletTip\1.7"    /v DisableNewKeyboardExperience  /t REG_DWORD /d 1 /f  1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>taskkill /F /IM TabTip.exe    1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>taskkill /F /IM TabTip32.exe  1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo    Done.
+   Done.
+
+C:\Users\Hakol Backup PC\virtual-keyboard>reg add "HKCU\SOFTWARE\Microsoft\TabletTip\1.7" /v EnableKeyboardUndockedState    /t REG_DWORD /d 0 /f  1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>reg add "HKCU\SOFTWARE\Microsoft\TabletTip\1.7" /v LastUsedModalityWasHandwriting /t REG_DWORD /d 0 /f  1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo [2/4] Creating Chrome kiosk shortcut...
+[2/4] Creating Chrome kiosk shortcut...
+
+C:\Users\Hakol Backup PC\virtual-keyboard>set "SHORTCUT=C:\Users\Hakol Backup PC\Desktop\Kiosk.lnk"
+
+C:\Users\Hakol Backup PC\virtual-keyboard>set "TARGET_URL=https://gcdemos-26-int-ni-retail.uc.r.appspot.com/"
+
+C:\Users\Hakol Backup PC\virtual-keyboard>set "ARGS=--kiosk --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,Translate --disable-session-crashed-bubble --hide-crash-restore-bubble --load-extension="C:\Users\Hakol Backup PC\virtual-keyboard\scripts\..\dist" https://gcdemos-26-int-ni-retail.uc.r.appspot.com/"
+
+C:\Users\Hakol Backup PC\virtual-keyboard>set "PS_TMP=C:\Users\HAKOLB~1\AppData\Local\Temp\vkb_shortcut.ps1"
+
+C:\Users\Hakol Backup PC\virtual-keyboard>(
+echo $ws = New-Object -ComObject WScript.Shell
+ echo $s = $ws.CreateShortcut('C:\Users\Hakol Backup PC\Desktop\Kiosk.lnk'
+)
+$ws = New-Object -ComObject WScript.Shell
+$s = $ws.CreateShortcut('C:\Users\Hakol Backup PC\Desktop\Kiosk.lnk'
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo $s.TargetPath = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+$s.TargetPath = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo $s.Arguments = '--kiosk --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,Translate --disable-session-crashed-bubble --hide-crash-restore-bubble --load-extension="C:\Users\Hakol Backup PC\virtual-keyboard\scripts\..\dist" https://gcdemos-26-int-ni-retail.uc.r.appspot.com/'
+$s.Arguments = '--kiosk --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,Translate --disable-session-crashed-bubble --hide-crash-restore-bubble --load-extension="C:\Users\Hakol Backup PC\virtual-keyboard\scripts\..\dist" https://gcdemos-26-int-ni-retail.uc.r.appspot.com/'
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo $s.WindowStyle = 1
+$s.WindowStyle = 1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo $s.Save()
+$s.Save()
+
+C:\Users\Hakol Backup PC\virtual-keyboard>powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\HAKOLB~1\AppData\Local\Temp\vkb_shortcut.ps1"  1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>del "C:\Users\HAKOLB~1\AppData\Local\Temp\vkb_shortcut.ps1"  1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo    Shortcut created: C:\Users\Hakol Backup PC\Desktop\Kiosk.lnk
+   Shortcut created: C:\Users\Hakol Backup PC\Desktop\Kiosk.lnk
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo    Edit TARGET_URL in this script before deploying.
+   Edit TARGET_URL in this script before deploying.
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo [3/4] Registering TabTip suppressor at startup...
+[3/4] Registering TabTip suppressor at startup...
+
+C:\Users\Hakol Backup PC\virtual-keyboard>schtasks /create /tn "VKB-SuppressTabTip" /tr "taskkill /F /IM TabTip.exe" /sc onlogon /ru "Hakol Backup PC" /f  1>nul 2>&1
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo    Done.
+   Done.
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo [4/4] Summary
+[4/4] Summary
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo.
+
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo    Extension path : C:\Users\Hakol Backup PC\virtual-keyboard\scripts\..\dist
+   Extension path : C:\Users\Hakol Backup PC\virtual-keyboard\scripts\..\dist
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo    Chrome path    : C:\Program Files\Google\Chrome\Application\chrome.exe
+   Chrome path    : C:\Program Files\Google\Chrome\Application\chrome.exe
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo    Desktop shortcut created.
+   Desktop shortcut created.
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo    Windows touch keyboard disabled.
+   Windows touch keyboard disabled.
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo.
+
+
+C:\Users\Hakol Backup PC\virtual-keyboard>echo  IMPORTANT: Edit TARGET_URL in this .bat before deploying.
+ IMPORTANT: Edit TARGET_URL in this .bat before deploying.

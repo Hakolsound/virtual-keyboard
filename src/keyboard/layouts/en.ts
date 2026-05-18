@@ -26,9 +26,9 @@ export const enLayout: KeyboardLayout = {
     { type: 'char',   base: "'",  shift: '"'              },
     { type: 'char',   base: '-',  shift: '_'              },
     { type: 'char',   base: '.',  shift: '>'              },
-    { type: 'action', action: 'space',     label: 'Space', flex: 3   },
-    { type: 'action', action: 'clear',     label: 'Clear'            },
-    { type: 'action', action: 'backspace', label: '⌫'               },
-    { type: 'action', action: 'done',      label: 'Done', flex: 1.5  },
+    { type: 'action', action: 'space',      label: 'space', flex: 3   },
+    { type: 'action', action: 'lang-cycle', label: '🌐'              },
+    { type: 'action', action: 'backspace',  label: '⌫'               },
+    { type: 'action', action: 'done',       label: 'Done', flex: 1.5 },
   ],
 }

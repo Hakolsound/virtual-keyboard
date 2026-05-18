@@ -29,9 +29,9 @@ export const heLayout: KeyboardLayout = {
     { type: 'action', action: 'shift',     label: '⇧',    flex: 1.5 },
     { type: 'char',   base: '-',  shift: '_'              },
     { type: 'char',   base: '.',  shift: ':'              },
-    { type: 'action', action: 'space',     label: 'רווח', flex: 3   },
-    { type: 'action', action: 'clear',     label: 'נקה'             },
-    { type: 'action', action: 'backspace', label: '⌫'               },
-    { type: 'action', action: 'done',      label: 'סיום', flex: 1.5  },
+    { type: 'action', action: 'space',      label: 'רווח', flex: 3   },
+    { type: 'action', action: 'lang-cycle', label: '🌐'              },
+    { type: 'action', action: 'backspace',  label: '⌫'               },
+    { type: 'action', action: 'done',       label: 'סיום', flex: 1.5 },
   ],
 }

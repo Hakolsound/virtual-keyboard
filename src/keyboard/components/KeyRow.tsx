@@ -14,7 +14,7 @@ function KeyRow({ keys, direction }: KeyRowProps) {
       style={{
         display: 'flex',
         flexDirection: 'row',
-        gap: '4px',
+        gap: '6px',
         justifyContent: 'center',
         alignItems: 'stretch',
         minHeight: 'var(--vkb-key-h, 48px)',

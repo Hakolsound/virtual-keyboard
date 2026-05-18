@@ -8,6 +8,8 @@ export type KeyAction =
   | 'done'
   | 'clear'
   | 'shift'
+  | 'lang-cycle'
+  | 'settings'
 
 export interface CharKey {
   type: 'char'

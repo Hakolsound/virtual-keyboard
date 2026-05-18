@@ -40,9 +40,9 @@ export const esLayout: KeyboardLayout = {
     { type: 'char',   base: "'",  shift: '"'              },
     { type: 'char',   base: '-',  shift: '_'              },
     { type: 'char',   base: '.',  shift: '>'              },
-    { type: 'action', action: 'space',     label: 'Espacio', flex: 3 },
-    { type: 'action', action: 'clear',     label: 'Borrar'          },
-    { type: 'action', action: 'backspace', label: '⌫'              },
-    { type: 'action', action: 'done',      label: 'Listo', flex: 1.5 },
+    { type: 'action', action: 'space',      label: 'espacio', flex: 3 },
+    { type: 'action', action: 'lang-cycle', label: '🌐'              },
+    { type: 'action', action: 'backspace',  label: '⌫'               },
+    { type: 'action', action: 'done',       label: 'Listo', flex: 1.5 },
   ],
 }
