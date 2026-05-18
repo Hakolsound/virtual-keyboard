@@ -3,13 +3,11 @@ import type { ActionKey, CharKey, KeyDef } from '../layouts'
 import { LANGUAGE_LABELS } from '../layouts'
 import { useKeyboard } from '../context/KeyboardContext'
 import { useSettings } from '../context/SettingsContext'
-import { useLongPress } from '../hooks/useLongPress'
 
 // iOS-style color palette
 const KEY_LETTER   = '#FFFFFF'
 const KEY_SPECIAL  = '#ADB5BD'
 const KEY_DONE     = '#007AFF'
-const KEY_DANGER   = '#FF3B30'
 const KEY_SHADOW   = '0 1px 0 rgba(0,0,0,0.35)'
 const KEY_RADIUS   = '5px'
 
@@ -21,7 +19,14 @@ function Key({ keyDef }: KeyProps) {
   const { shift, insert, backspace, done, setShift, setLanguage, activeLanguage,
           toggleNumbers, showNumbers, toggleGlobe, globeOpen } = useKeyboard()
   const { enabledLanguages, openSettings } = useSettings()
-  const pressedRef = useRef(false)
+  const pressedRef     = useRef(false)
+  const bsDelayRef     = useRef<ReturnType<typeof setTimeout>  | null>(null)
+  const bsRepeatRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const cancelBsRepeat = useCallback(() => {
+    if (bsDelayRef.current  !== null) { clearTimeout(bsDelayRef.current);   bsDelayRef.current  = null }
+    if (bsRepeatRef.current !== null) { clearInterval(bsRepeatRef.current); bsRepeatRef.current = null }
+  }, [])
 
   const handleCharPress = useCallback(() => {
     if (keyDef.type !== 'char') return
@@ -53,9 +58,7 @@ function Key({ keyDef }: KeyProps) {
       case 'toggle-globe':   return toggleGlobe()
       case 'settings':       return openSettings()
     }
-  }, [keyDef, shift, insert, done, backspace, setShift, setLanguage, activeLanguage, enabledLanguages, openSettings])
-
-  const longPress = useLongPress({ onPress: backspace })
+  }, [keyDef, shift, insert, done, backspace, setShift, setLanguage, activeLanguage, enabledLanguages, toggleNumbers, toggleGlobe, openSettings])
 
   const isBackspace    = keyDef.type === 'action' && (keyDef as ActionKey).action === 'backspace'
   const isShift        = keyDef.type === 'action' && (keyDef as ActionKey).action === 'shift'
@@ -101,21 +104,26 @@ function Key({ keyDef }: KeyProps) {
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     e.preventDefault()
     pressedRef.current = true
-    if (isBackspace) longPress.onPointerDown(e)
-  }, [isBackspace, longPress])
+    if (isBackspace) {
+      backspace()
+      bsDelayRef.current = setTimeout(() => {
+        bsRepeatRef.current = setInterval(backspace, 80)
+      }, 400)
+    }
+  }, [isBackspace, backspace])
 
   const onPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    if (isBackspace) { longPress.onPointerUp(e); return }
+    if (isBackspace) { cancelBsRepeat(); return }
     if (!pressedRef.current) return
     pressedRef.current = false
     if (keyDef.type === 'char') handleCharPress()
     else handleActionPress()
-  }, [isBackspace, longPress, keyDef, handleCharPress, handleActionPress])
+  }, [isBackspace, cancelBsRepeat, keyDef, handleCharPress, handleActionPress])
 
   const onPointerLeave = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     pressedRef.current = false
-    if (isBackspace) longPress.onPointerLeave(e)
-  }, [isBackspace, longPress])
+    if (isBackspace) cancelBsRepeat()
+  }, [isBackspace, cancelBsRepeat])
 
   void isSpace; void isLang // cosmetic flags, bg handled above
 
