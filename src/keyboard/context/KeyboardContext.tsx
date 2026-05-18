@@ -33,8 +33,10 @@ type KeyboardAction =
 
 function reducer(state: KeyboardState, action: KeyboardAction): KeyboardState {
   switch (action.type) {
-    case 'OPEN':
-      return { ...state, isOpen: true, value: action.value, cursorPos: action.cursorPos, globeOpen: false }
+    case 'OPEN': {
+      const autoShift = action.value === '' ? 'once' : state.shift
+      return { ...state, isOpen: true, value: action.value, cursorPos: action.cursorPos, globeOpen: false, shift: autoShift as ShiftState }
+    }
     case 'CLOSE':
       return { ...state, isOpen: false, globeOpen: false }
     case 'SET_VALUE':
@@ -166,6 +168,8 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
     const next = value.slice(0, cursorPos) + resolved + value.slice(cursorPos)
     commitValue(next, cursorPos + resolved.length)
     applyShiftReset()
+    // Auto-capitalize the word after a space
+    if (char === ' ') dispatch({ type: 'SET_SHIFT', shift: 'once' })
   }, [commitValue, applyShiftReset])
 
   const backspace = useCallback(() => {
@@ -173,6 +177,8 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
     if (cursorPos === 0) return
     const next = value.slice(0, cursorPos - 1) + value.slice(cursorPos)
     commitValue(next, cursorPos - 1)
+    // Auto-capitalize when field is cleared
+    if (next === '') dispatch({ type: 'SET_SHIFT', shift: 'once' })
   }, [commitValue])
 
   const clear = useCallback(() => {

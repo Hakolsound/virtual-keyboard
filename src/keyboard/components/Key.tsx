@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef } from 'react'
+import { memo, useCallback, useRef, useState } from 'react'
 import type { ActionKey, CharKey, KeyDef } from '../layouts'
 import { LANGUAGE_LABELS } from '../layouts'
 import { useKeyboard } from '../context/KeyboardContext'
@@ -19,6 +19,7 @@ function Key({ keyDef }: KeyProps) {
   const { shift, insert, backspace, done, setShift, setLanguage, activeLanguage,
           toggleNumbers, showNumbers, toggleGlobe, globeOpen } = useKeyboard()
   const { enabledLanguages, openSettings } = useSettings()
+  const [pressed, setPressed] = useState(false)
   const pressedRef     = useRef(false)
   const bsDelayRef     = useRef<ReturnType<typeof setTimeout>  | null>(null)
   const bsRepeatRef    = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -101,9 +102,17 @@ function Key({ keyDef }: KeyProps) {
     bg = '#5A6370'; color = '#FFFFFF'
   }
 
+  // Press feedback: darken slightly
+  if (pressed) {
+    if (isDone)                    bg = '#005EC3'
+    else if (keyDef.type === 'char') bg = '#C8CDD3'
+    else                             bg = '#8E959D'
+  }
+
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     e.preventDefault()
     pressedRef.current = true
+    setPressed(true)
     if (isBackspace) {
       backspace()
       bsDelayRef.current = setTimeout(() => {
@@ -113,6 +122,7 @@ function Key({ keyDef }: KeyProps) {
   }, [isBackspace, backspace])
 
   const onPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    setPressed(false)
     if (isBackspace) { cancelBsRepeat(); return }
     if (!pressedRef.current) return
     pressedRef.current = false
@@ -122,11 +132,13 @@ function Key({ keyDef }: KeyProps) {
 
   const onPointerLeave = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     pressedRef.current = false
+    setPressed(false)
     if (isBackspace) cancelBsRepeat()
   }, [isBackspace, cancelBsRepeat])
 
   const onPointerCancel = useCallback(() => {
     pressedRef.current = false
+    setPressed(false)
     cancelBsRepeat()
   }, [cancelBsRepeat])
 
