@@ -175,9 +175,20 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
   const backspace = useCallback(() => {
     const { value, cursorPos } = stateRef.current
     if (cursorPos === 0) return
-    const next = value.slice(0, cursorPos - 1) + value.slice(cursorPos)
-    commitValue(next, cursorPos - 1)
-    // Auto-capitalize when field is cleared
+    // Use Intl.Segmenter to remove a full grapheme cluster (handles emoji surrogate
+    // pairs and ZWJ sequences like 👨‍👩‍👧 that span many code units).
+    const before = value.slice(0, cursorPos)
+    let removeLen = 1
+    if (typeof Intl !== 'undefined' && (Intl as any).Segmenter) {
+      const segs = [...new (Intl as any).Segmenter().segment(before)]
+      removeLen = segs[segs.length - 1]?.segment.length ?? 1
+    } else {
+      // Fallback: code-point spread handles basic surrogate pairs
+      const pts = [...before]
+      removeLen = pts[pts.length - 1]?.length ?? 1
+    }
+    const next = value.slice(0, cursorPos - removeLen) + value.slice(cursorPos)
+    commitValue(next, cursorPos - removeLen)
     if (next === '') dispatch({ type: 'SET_SHIFT', shift: 'once' })
   }, [commitValue])
 

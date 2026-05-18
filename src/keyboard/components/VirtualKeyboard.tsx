@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from 'react'
 import { useKeyboard } from '../context/KeyboardContext'
 import { useSettings } from '../context/SettingsContext'
-import { LAYOUTS, EMOJI_BOTTOM_ROW } from '../layouts'
+import { LAYOUTS } from '../layouts'
 import type { LanguageCode } from '../layouts'
 import KeyboardHeader from './KeyboardHeader'
 import KeyRow from './KeyRow'
@@ -170,10 +170,7 @@ function VirtualKeyboard() {
       <KeyboardHeader />
 
       {isEmoji ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '6px 3px 10px' }}>
-          <EmojiPanel />
-          <KeyRow keys={EMOJI_BOTTOM_ROW} direction="ltr" />
-        </div>
+        <EmojiPanel />
       ) : layout ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '6px 3px 10px' }}>
           {showNumbers && <KeyRow keys={layout.numberRow} direction={dir} />}
