@@ -80,69 +80,41 @@ Settings are saved in `localStorage` and persist across page reloads.
 
 ---
 
-## New machine setup (step by step)
+## New machine setup
 
-Complete checklist for setting up a brand-new Windows kiosk machine from scratch.
+Two scripts handle everything. Both live in the repo root.
 
-### Step 1 — Install prerequisites
+### First-time setup
 
-1. **Google Chrome** — download from google.com/chrome and install
-2. **Node.js 18+** — download from nodejs.org (LTS version) and install  
-   Verify: open Command Prompt and run `node -v`
-3. **Git** — download from git-scm.com and install  
-   Verify: `git --version`
+1. Install **Chrome** and **Git** manually if not present (only needed once)
+2. Clone the repo:
+   ```bat
+   git clone https://github.com/Hakolsound/virtual-keyboard.git
+   cd virtual-keyboard
+   ```
+3. Right-click `setup.bat` → **Run as administrator**
 
-### Step 2 — Clone and build the extension
+`setup.bat` will:
+- Install Node.js via `winget` if missing
+- Run `npm install` + `npm run build`
+- Suppress the Windows touch keyboard (registry)
+- **Ask for the kiosk URL** and save it to `kiosk-url.txt`
+- Create a **Kiosk** shortcut on the Desktop pointing to that URL
 
-Open Command Prompt (no admin needed):
+4. Open Chrome → `chrome://extensions` → **Load unpacked** → select the `dist\` folder
+5. Double-click the **Kiosk** shortcut to launch
 
-```bat
-git clone https://github.com/Hakolsound/virtual-keyboard.git
-cd virtual-keyboard
-npm install
-npm run build
-```
+### Updating
 
-Note the full path to the `dist\` folder — you'll need it in Step 4.  
-Example: `C:\Users\Kiosk\virtual-keyboard\dist`
+Right-click `update.bat` → **Run as administrator** (or just double-click if already admin)
 
-### Step 3 — Suppress the Windows touch keyboard
+`update.bat` will:
+- `git pull` + `npm run build`
+- Show the current kiosk URL and ask **"Change URL? (y/N)"**
+  - Press **Enter** to keep it
+  - Type **y** to enter a new URL — the Desktop shortcut is recreated automatically
 
-Open Command Prompt **as Administrator** (right-click → Run as administrator):
-
-```bat
-reg add "HKLM\SOFTWARE\Policies\Microsoft\TabletPC" /v PreventLaunchingTouchKeyboard /t REG_DWORD /d 1 /f
-reg add "HKLM\SOFTWARE\Microsoft\TabletTip\1.7"    /v DisableNewKeyboardExperience  /t REG_DWORD /d 1 /f
-taskkill /F /IM TabTip.exe
-```
-
-### Step 4 — Load the extension in Chrome
-
-1. Open Chrome → navigate to `chrome://extensions`
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Select the `dist\` folder from Step 2
-
-The extension appears in the list as **Virtual Keyboard**.
-
-### Step 5 — Create the kiosk desktop shortcut
-
-Right-click the Desktop → **New → Shortcut**  
-Paste this as the location (replace the two placeholder paths):
-
-```
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,Translate --disable-session-crashed-bubble --hide-crash-restore-bubble --load-extension="C:\Users\Kiosk\virtual-keyboard\dist" https://your-kiosk-app.com
-```
-
-Name the shortcut **Kiosk**, then double-click it to launch.
-
-### Step 6 — Verify everything works
-
-1. The kiosk app opens full-screen
-2. Tap any text field → keyboard slides up from the bottom
-3. Type characters → they appear in the field
-4. Tap **Done** → keyboard dismisses
-5. Hold **space bar 3 seconds** → PIN screen appears (PIN: `3924`) → settings accessible
+> The kiosk URL is stored in `kiosk-url.txt` (gitignored — never committed to the repo).
 
 ---
 
