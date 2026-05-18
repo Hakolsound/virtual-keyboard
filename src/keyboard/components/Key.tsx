@@ -126,9 +126,9 @@ function Key({ keyDef }: KeyProps) {
       className={`${base} ${variant}`}
       style={{
         flex,
-        minWidth:  'var(--vkb-key-min-w, 2.5rem)',
-        minHeight: 'var(--vkb-key-h, 3rem)',
-        fontSize:  'var(--vkb-key-font, 1rem)',
+        minWidth:  'var(--vkb-key-min-w, 40px)',
+        minHeight: 'var(--vkb-key-h, 48px)',
+        fontSize:  'var(--vkb-key-font, 16px)',
       }}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}

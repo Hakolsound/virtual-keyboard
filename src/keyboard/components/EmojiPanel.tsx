@@ -13,7 +13,7 @@ function EmojiPanel() {
   const category = emojiCategories[activeCat]
 
   return (
-    <div className="flex flex-col" style={{ height: '14rem' }}>
+    <div className="flex flex-col" style={{ height: '224px' }}>
       {/* Emoji grid */}
       <div className="flex-1 overflow-y-auto p-2">
         <div className="grid grid-cols-8 gap-1">
@@ -25,8 +25,8 @@ function EmojiPanel() {
               className="flex items-center justify-center rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors touch-manipulation select-none"
               style={{
                 aspectRatio: '1',
-                fontSize: 'var(--vkb-emoji-font, 1.5rem)',
-                minHeight: 'var(--vkb-key-h, 3rem)',
+                fontSize: 'var(--vkb-emoji-font, 24px)',
+                minHeight: 'var(--vkb-key-h, 48px)',
               }}
               onPointerDown={e => { e.preventDefault(); handleEmoji(emoji) }}
               onContextMenu={e => e.preventDefault()}

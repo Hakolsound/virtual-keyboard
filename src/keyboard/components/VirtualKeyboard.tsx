@@ -47,10 +47,10 @@ function VirtualKeyboard() {
         boxShadow: '0 -4px 24px rgba(0,0,0,0.10)',
         opacity: exiting ? 0 : 1,
         transition: 'opacity 160ms ease',
-        '--vkb-key-min-w': 'clamp(2rem, 5.5vw, 5.25rem)',
-        '--vkb-key-h':     'clamp(2.75rem, 5.5vh, 4.5rem)',
-        '--vkb-key-font':  'clamp(0.85rem, 1.8vw, 1.1rem)',
-        '--vkb-emoji-font':'clamp(1.2rem, 2.5vw, 2rem)',
+        '--vkb-key-min-w': 'clamp(32px, 5.5vw, 84px)',
+        '--vkb-key-h':     'clamp(44px, 5.5vh, 72px)',
+        '--vkb-key-font':  'clamp(13px, 1.8vw, 18px)',
+        '--vkb-emoji-font':'clamp(19px, 2.5vw, 32px)',
       } as React.CSSProperties}
     >
       <KeyboardHeader />
