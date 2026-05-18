@@ -23,8 +23,10 @@ function Key({ keyDef }: KeyProps) {
   const pressedRef     = useRef(false)
   const bsDelayRef     = useRef<ReturnType<typeof setTimeout>  | null>(null)
   const bsRepeatRef    = useRef<ReturnType<typeof setInterval> | null>(null)
-  const swipeStartXRef = useRef<number | null>(null)
-  const swipeDeltaRef  = useRef(0)
+  const swipeStartXRef  = useRef<number | null>(null)
+  const swipeDeltaRef   = useRef(0)
+  const spaceHoldRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const spaceFiredRef   = useRef(false)  // true when 3s hold triggered settings
 
   const cancelBsRepeat = useCallback(() => {
     if (bsDelayRef.current  !== null) { clearTimeout(bsDelayRef.current);   bsDelayRef.current  = null }
@@ -124,8 +126,14 @@ function Key({ keyDef }: KeyProps) {
     if (isSpace) {
       swipeStartXRef.current = e.clientX
       swipeDeltaRef.current  = 0
+      spaceFiredRef.current  = false
+      // 3-second easter-egg hold → open settings
+      spaceHoldRef.current = setTimeout(() => {
+        spaceFiredRef.current = true
+        openSettings()
+      }, 3000)
     }
-  }, [isBackspace, isSpace, backspace])
+  }, [isBackspace, isSpace, backspace, openSettings])
 
   const onPointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     if (isSpace && swipeStartXRef.current !== null) {
@@ -135,9 +143,21 @@ function Key({ keyDef }: KeyProps) {
 
   const onPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     setPressed(false)
+    if (isSpace && spaceHoldRef.current !== null) {
+      clearTimeout(spaceHoldRef.current)
+      spaceHoldRef.current = null
+    }
     if (isBackspace) { cancelBsRepeat(); return }
     if (!pressedRef.current) return
     pressedRef.current = false
+
+    // If 3s hold fired settings, suppress the space insert
+    if (isSpace && spaceFiredRef.current) {
+      spaceFiredRef.current = false
+      swipeStartXRef.current = null
+      swipeDeltaRef.current  = 0
+      return
+    }
 
     // Space bar swipe → cycle language
     if (isSpace && Math.abs(swipeDeltaRef.current) > 35) {
@@ -157,19 +177,25 @@ function Key({ keyDef }: KeyProps) {
     else handleActionPress()
   }, [isBackspace, isSpace, cancelBsRepeat, enabledLanguages, activeLanguage, setLanguage, keyDef, handleCharPress, handleActionPress])
 
+  const cancelSpaceHold = useCallback(() => {
+    if (spaceHoldRef.current !== null) { clearTimeout(spaceHoldRef.current); spaceHoldRef.current = null }
+  }, [])
+
   const onPointerLeave = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     pressedRef.current = false
     setPressed(false)
     swipeStartXRef.current = null
     swipeDeltaRef.current  = 0
+    cancelSpaceHold()
     if (isBackspace) cancelBsRepeat()
-  }, [isBackspace, cancelBsRepeat])
+  }, [isBackspace, cancelBsRepeat, cancelSpaceHold])
 
   const onPointerCancel = useCallback(() => {
     pressedRef.current = false
     setPressed(false)
+    cancelSpaceHold()
     cancelBsRepeat()
-  }, [cancelBsRepeat])
+  }, [cancelBsRepeat, cancelSpaceHold])
 
   void isSpace; void isLang // cosmetic flags, bg handled above
 
