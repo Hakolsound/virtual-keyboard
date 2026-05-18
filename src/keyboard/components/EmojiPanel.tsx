@@ -73,6 +73,9 @@ function EmojiPanel() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 3px 0' }}>
+      <style>{`
+        .vkb-noscroll::-webkit-scrollbar { display: none; }
+      `}</style>
 
       {/* Search bar */}
       <div style={{ padding: '0 2px 4px' }}>
@@ -110,6 +113,7 @@ function EmojiPanel() {
         <div
           ref={scrollRef}
           onScroll={onCatScroll}
+          className="vkb-noscroll"
           style={{
             display: 'flex',
             overflowX: 'scroll',
@@ -122,6 +126,7 @@ function EmojiPanel() {
           {emojiCategories.map((cat, ci) => (
             <div
               key={ci}
+              className="vkb-noscroll"
               style={{
                 minWidth: '100%',
                 scrollSnapAlign: 'start',
@@ -132,6 +137,7 @@ function EmojiPanel() {
                 padding: '2px 0',
                 alignContent: 'start',
                 overflowY: 'auto',
+                scrollbarWidth: 'none',
                 boxSizing: 'border-box',
               }}
             >
@@ -144,6 +150,7 @@ function EmojiPanel() {
       {/* Category bar: ABC | icons… | ⌫ */}
       <div
         ref={catBarRef}
+        className="vkb-noscroll"
         style={{
           display: 'flex',
           alignItems: 'center',
