@@ -152,6 +152,7 @@ function VirtualKeyboard() {
         display: 'flex',
         flexDirection: 'column',
         userSelect: 'none',
+        fontFamily: '-apple-system, "SF Pro Rounded", "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
         backgroundColor: '#CDD1D6',
         boxShadow: '0 -2px 12px rgba(0,0,0,0.15)',
         position: 'relative',

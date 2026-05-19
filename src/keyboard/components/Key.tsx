@@ -20,13 +20,15 @@ function Key({ keyDef }: KeyProps) {
           toggleNumbers, showNumbers, toggleGlobe, globeOpen } = useKeyboard()
   const { enabledLanguages, openSettings } = useSettings()
   const [pressed, setPressed] = useState(false)
-  const pressedRef     = useRef(false)
-  const bsDelayRef     = useRef<ReturnType<typeof setTimeout>  | null>(null)
-  const bsRepeatRef    = useRef<ReturnType<typeof setInterval> | null>(null)
-  const swipeStartXRef  = useRef<number | null>(null)
-  const swipeDeltaRef   = useRef(0)
-  const spaceHoldRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const spaceFiredRef   = useRef(false)  // true when 3s hold triggered settings
+  const [swipeLabel, setSwipeLabel] = useState<string | null>(null)
+  const pressedRef        = useRef(false)
+  const bsDelayRef        = useRef<ReturnType<typeof setTimeout>  | null>(null)
+  const bsRepeatRef       = useRef<ReturnType<typeof setInterval> | null>(null)
+  const swipeStartXRef    = useRef<number | null>(null)
+  const swipeDeltaRef     = useRef(0)
+  const spaceHoldRef      = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const spaceFiredRef     = useRef(false)  // true when 3s hold triggered settings
+  const swipeLabelTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const cancelBsRepeat = useCallback(() => {
     if (bsDelayRef.current  !== null) { clearTimeout(bsDelayRef.current);   bsDelayRef.current  = null }
@@ -113,6 +115,11 @@ function Key({ keyDef }: KeyProps) {
     else                             bg = '#8E959D'
   }
 
+  const clearSwipeLabel = useCallback(() => {
+    if (swipeLabelTimer.current !== null) { clearTimeout(swipeLabelTimer.current); swipeLabelTimer.current = null }
+    setSwipeLabel(null)
+  }, [])
+
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     e.preventDefault()
     pressedRef.current = true
@@ -124,22 +131,37 @@ function Key({ keyDef }: KeyProps) {
       }, 400)
     }
     if (isSpace) {
+      // Capture pointer so move/up fire even when finger slides off the button
+      e.currentTarget.setPointerCapture(e.pointerId)
       swipeStartXRef.current = e.clientX
       swipeDeltaRef.current  = 0
       spaceFiredRef.current  = false
+      if (swipeLabelTimer.current !== null) clearTimeout(swipeLabelTimer.current)
+      setSwipeLabel(LANGUAGE_LABELS[activeLanguage])
       // 3-second easter-egg hold → open settings
       spaceHoldRef.current = setTimeout(() => {
         spaceFiredRef.current = true
         openSettings()
       }, 3000)
     }
-  }, [isBackspace, isSpace, backspace, openSettings])
+  }, [isBackspace, isSpace, backspace, openSettings, activeLanguage])
 
   const onPointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     if (isSpace && swipeStartXRef.current !== null) {
-      swipeDeltaRef.current = e.clientX - swipeStartXRef.current
+      const delta = e.clientX - swipeStartXRef.current
+      swipeDeltaRef.current = delta
+      // Preview the target language once past threshold
+      if (Math.abs(delta) > 20) {
+        const idx = enabledLanguages.indexOf(activeLanguage)
+        const previewIdx = delta > 0
+          ? (idx + 1) % enabledLanguages.length
+          : (idx - 1 + enabledLanguages.length) % enabledLanguages.length
+        setSwipeLabel(LANGUAGE_LABELS[enabledLanguages[previewIdx]])
+      } else {
+        setSwipeLabel(LANGUAGE_LABELS[activeLanguage])
+      }
     }
-  }, [isSpace])
+  }, [isSpace, enabledLanguages, activeLanguage])
 
   const onPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     setPressed(false)
@@ -168,10 +190,15 @@ function Key({ keyDef }: KeyProps) {
       setLanguage(next)
       swipeStartXRef.current = null
       swipeDeltaRef.current  = 0
+      // Show the new language label briefly as confirmation
+      setSwipeLabel(LANGUAGE_LABELS[next])
+      if (swipeLabelTimer.current !== null) clearTimeout(swipeLabelTimer.current)
+      swipeLabelTimer.current = setTimeout(() => { setSwipeLabel(null); swipeLabelTimer.current = null }, 1500)
       return
     }
     swipeStartXRef.current = null
     swipeDeltaRef.current  = 0
+    if (isSpace) clearSwipeLabel()
 
     if (keyDef.type === 'char') handleCharPress()
     else handleActionPress()
@@ -182,6 +209,8 @@ function Key({ keyDef }: KeyProps) {
   }, [])
 
   const onPointerLeave = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    // With pointer capture active on the space bar, this only fires after release —
+    // so it's safe to reset swipe state here.
     pressedRef.current = false
     setPressed(false)
     swipeStartXRef.current = null
@@ -193,9 +222,12 @@ function Key({ keyDef }: KeyProps) {
   const onPointerCancel = useCallback(() => {
     pressedRef.current = false
     setPressed(false)
+    swipeStartXRef.current = null
+    swipeDeltaRef.current  = 0
     cancelSpaceHold()
     cancelBsRepeat()
-  }, [cancelBsRepeat, cancelSpaceHold])
+    clearSwipeLabel()
+  }, [cancelBsRepeat, cancelSpaceHold, clearSwipeLabel])
 
   void isSpace; void isLang // cosmetic flags, bg handled above
 
@@ -220,7 +252,7 @@ function Key({ keyDef }: KeyProps) {
         justifyContent: 'center',
         userSelect:   'none',
         WebkitUserSelect: 'none',
-        touchAction:  'manipulation',
+        touchAction:  isSpace ? 'none' : 'manipulation',
         transition:   'background-color 80ms, transform 60ms',
         letterSpacing: isSpace ? '0' : undefined,
       }}
@@ -237,6 +269,15 @@ function Key({ keyDef }: KeyProps) {
           <path d="M2 12h20"/>
           <path d="M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"/>
         </svg>
+      ) : isShift ? (
+        /* Shift: filled up-arrow when off, stroked when on */
+        <svg width="22" height="22" viewBox="0 0 24 24" fill={isShiftOn ? 'none' : 'currentColor'} stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round">
+          <path d="M4 14 L12 4 L20 14 H15 V20 H9 V14 Z"/>
+        </svg>
+      ) : isSpace && swipeLabel ? (
+        <span style={{ fontSize: 'calc(var(--vkb-key-font, 16px) * 0.85)', opacity: 0.75, pointerEvents: 'none' }}>
+          {swipeLabel}
+        </span>
       ) : label}
     </button>
   )
