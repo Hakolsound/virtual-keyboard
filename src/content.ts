@@ -50,8 +50,8 @@ function mountKeyboard() {
   ].join(';')
   shadow.appendChild(mountEl)
 
-  // ── Suppress browser autofill popups on all inputs ────────────────────────
-  suppressAutofill()
+  // ── Suppress autofill + auto-focus new inputs on stage advance ───────────
+  setupInputWatcher()
 
   // ── React root ─────────────────────────────────────────────────────────────
   const root = createRoot(mountEl)
@@ -61,35 +61,70 @@ function mountKeyboard() {
   ensureViewportMeta()
 }
 
-function suppressAutofill() {
-  const apply = (el: HTMLInputElement) => {
-    const type = el.type.toLowerCase()
-    if (type === 'password') {
-      // 'new-password' suppresses password managers + Google Pay on password fields
-      el.setAttribute('autocomplete', 'new-password')
-    } else {
-      // 'off' suppresses Chrome's form-history dropdown on text fields.
-      // For payment/contact fields Chrome ignores 'off', so also set 'new-password'
-      // via the name trick below.
-      el.setAttribute('autocomplete', 'off')
-    }
-    el.setAttribute('data-lpignore', 'true')
-    el.setAttribute('data-form-type', 'other')
-    // Randomise the name so Chrome can't match this field to stored form history
-    // across page loads. Preserve existing name in data attr so the host page
-    // can still read it if needed.
-    if (el.name && !el.dataset.vkbOrigName) {
-      el.dataset.vkbOrigName = el.name
-      el.name = el.name + '_vkb_' + Math.random().toString(36).slice(2, 7)
-    }
+function isTextInput(el: Element): el is HTMLInputElement | HTMLTextAreaElement {
+  if (el instanceof HTMLTextAreaElement) return true
+  if (el instanceof HTMLInputElement) {
+    return ['text', 'search', 'email', 'url', 'tel', 'password', ''].includes(el.type.toLowerCase())
   }
-  document.querySelectorAll<HTMLInputElement>('input').forEach(apply)
+  return false
+}
+
+function suppressAutofill(el: HTMLInputElement) {
+  const type = el.type.toLowerCase()
+  if (type === 'password') {
+    el.setAttribute('autocomplete', 'new-password')
+  } else {
+    el.setAttribute('autocomplete', 'off')
+  }
+  el.setAttribute('data-lpignore', 'true')
+  el.setAttribute('data-form-type', 'other')
+  if (el.name && !el.dataset.vkbOrigName) {
+    el.dataset.vkbOrigName = el.name
+    el.name = el.name + '_vkb_' + Math.random().toString(36).slice(2, 7)
+  }
+}
+
+function tryAutoFocus(el: HTMLInputElement) {
+  if (!isTextInput(el)) return
+  if (el.disabled || el.readOnly) return
+  // Delay slightly so CSS transitions finish before we measure visibility
+  setTimeout(() => {
+    const active = document.activeElement
+    if (active && active !== document.body && active !== document.documentElement) return
+    const rect = el.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return
+    el.focus()
+  }, 150)
+}
+
+function setupInputWatcher() {
+  document.querySelectorAll<HTMLInputElement>('input').forEach(suppressAutofill)
+
+  // Auto-focus the first visible input already on the page
+  const initial = document.querySelector<HTMLInputElement>('input')
+  if (initial) tryAutoFocus(initial)
+
+  let pendingFocus: HTMLInputElement | null = null
+
   const mo = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
-        if (node instanceof HTMLInputElement) apply(node)
-        if (node instanceof HTMLElement) node.querySelectorAll<HTMLInputElement>('input').forEach(apply)
+        if (node instanceof HTMLInputElement) {
+          suppressAutofill(node)
+          if (!pendingFocus) pendingFocus = node
+        } else if (node instanceof HTMLElement) {
+          node.querySelectorAll<HTMLInputElement>('input').forEach(suppressAutofill)
+          if (!pendingFocus) {
+            const first = node.querySelector<HTMLInputElement>('input')
+            if (first) pendingFocus = first
+          }
+        }
       })
+    }
+    // One auto-focus attempt per mutation batch
+    if (pendingFocus) {
+      tryAutoFocus(pendingFocus)
+      pendingFocus = null
     }
   })
   mo.observe(document.body, { childList: true, subtree: true })
