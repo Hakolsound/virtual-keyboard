@@ -84,17 +84,20 @@ function suppressAutofill(el: HTMLInputElement) {
   }
 }
 
-function tryAutoFocus(el: HTMLInputElement) {
+function tryAutoFocus(el: HTMLInputElement, attempt = 0) {
   if (!isTextInput(el)) return
   if (el.disabled || el.readOnly) return
-  // Delay slightly so CSS transitions finish before we measure visibility
   setTimeout(() => {
-    const active = document.activeElement
-    if (active && active !== document.body && active !== document.documentElement) return
+    // Only skip if the user is actively typing in another text field
+    if (isTextInput(document.activeElement as Element)) return
     const rect = el.getBoundingClientRect()
-    if (rect.width === 0 || rect.height === 0) return
+    if (rect.width === 0 || rect.height === 0) {
+      // Element not visible yet — retry up to 3 times with growing delay
+      if (attempt < 3) tryAutoFocus(el, attempt + 1)
+      return
+    }
     el.focus()
-  }, 150)
+  }, 150 + attempt * 200)
 }
 
 function setupInputWatcher() {
