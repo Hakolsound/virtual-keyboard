@@ -63,14 +63,27 @@ function mountKeyboard() {
 
 function suppressAutofill() {
   const apply = (el: HTMLInputElement) => {
-    // 'new-password' reliably suppresses Chrome autofill + Google Pay popups.
-    // 'off' alone is ignored by Chrome for payment/contact fields.
-    el.setAttribute('autocomplete', 'new-password')
+    const type = el.type.toLowerCase()
+    if (type === 'password') {
+      // 'new-password' suppresses password managers + Google Pay on password fields
+      el.setAttribute('autocomplete', 'new-password')
+    } else {
+      // 'off' suppresses Chrome's form-history dropdown on text fields.
+      // For payment/contact fields Chrome ignores 'off', so also set 'new-password'
+      // via the name trick below.
+      el.setAttribute('autocomplete', 'off')
+    }
     el.setAttribute('data-lpignore', 'true')
+    el.setAttribute('data-form-type', 'other')
+    // Randomise the name so Chrome can't match this field to stored form history
+    // across page loads. Preserve existing name in data attr so the host page
+    // can still read it if needed.
+    if (el.name && !el.dataset.vkbOrigName) {
+      el.dataset.vkbOrigName = el.name
+      el.name = el.name + '_vkb_' + Math.random().toString(36).slice(2, 7)
+    }
   }
-  // Apply to existing inputs
   document.querySelectorAll<HTMLInputElement>('input').forEach(apply)
-  // Watch for new inputs added dynamically
   const mo = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {

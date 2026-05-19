@@ -39,7 +39,7 @@ if /i "!CHANGE_URL!"=="y" (
   set "CHROME=C:\Program Files\Google\Chrome\Application\chrome.exe"
   if not exist "!CHROME!" set "CHROME=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
   set "SHORTCUT=%PUBLIC%\Desktop\Kiosk.lnk"
-  set "ARGS=--kiosk --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,Translate --disable-session-crashed-bubble --hide-crash-restore-bubble --load-extension="!DIST!" !KIOSK_URL!"
+  set "ARGS=--kiosk --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,Translate,AutofillShowTypePredictions,AutofillEnableAccountWalletStorage,AutofillServerCommunication --disable-session-crashed-bubble --hide-crash-restore-bubble --load-extension="!DIST!" !KIOSK_URL!"
 
   powershell -NoProfile -Command ^
     "$s=(New-Object -COM WScript.Shell).CreateShortcut('!SHORTCUT!');" ^
