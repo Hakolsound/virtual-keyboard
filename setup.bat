@@ -23,7 +23,7 @@ set "URL_FILE=%REPO%\kiosk-url.txt"
 where node >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
   echo Node.js not found. Installing via winget...
-  winget install --id OpenJS.NodeJS.LTS -e --accept-source-agreements --accept-package-agreements
+  winget install --id OpenJS.NodeJS.LTS -e --source winget --accept-source-agreements --accept-package-agreements
   if %ERRORLEVEL% NEQ 0 (
     echo ERROR: Could not install Node.js. Install manually from https://nodejs.org then re-run.
     pause & exit /b 1
@@ -37,7 +37,7 @@ echo [OK] Node.js: & node -v
 where git >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
   echo Git not found. Installing via winget...
-  winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements
+  winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
   if %ERRORLEVEL% NEQ 0 (
     echo ERROR: Could not install Git. Install manually from https://git-scm.com then re-run.
     pause & exit /b 1
