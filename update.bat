@@ -23,14 +23,11 @@ echo [OK] Build complete.
 :: ── Kiosk URL (offer to change) ───────────────────────────────
 echo.
 set "KIOSK_URL="
-if exist "%URL_FILE%" (
-  set /p KIOSK_URL=<"%URL_FILE%"
-  echo Current kiosk URL: !KIOSK_URL!
-) else (
-  echo No kiosk URL saved.
-)
+if exist "%URL_FILE%" set /p KIOSK_URL=<"%URL_FILE%"
+if not "!KIOSK_URL!"=="" echo Current kiosk URL: !KIOSK_URL!
+if "!KIOSK_URL!"=="" echo No kiosk URL saved.
 
-set /p CHANGE_URL=Change URL? ^(y/N^):
+set /p CHANGE_URL=Change URL? y/N:
 if /i "!CHANGE_URL!"=="y" (
   set /p KIOSK_URL=Enter new kiosk URL:
   echo !KIOSK_URL!>"%URL_FILE%"

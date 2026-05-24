@@ -68,23 +68,22 @@ echo [OK] Windows touch keyboard suppressed.
 :: ── Kiosk URL ─────────────────────────────────────────────────
 echo.
 set "KIOSK_URL="
-if exist "%URL_FILE%" (
-  set /p KIOSK_URL=<"%URL_FILE%"
+if exist "%URL_FILE%" set /p KIOSK_URL=<"%URL_FILE%"
+if not "!KIOSK_URL!"=="" (
   echo Current kiosk URL: !KIOSK_URL!
-  set /p CHANGE_URL=Change URL? ^(y/N^):
-  if /i "!CHANGE_URL!"=="y" set "KIOSK_URL="
 )
-if "!KIOSK_URL!"=="" (
-  set /p KIOSK_URL=Enter kiosk URL (e.g. https://your-app.com):
-  echo !KIOSK_URL!>"%URL_FILE%"
-)
+if not "!KIOSK_URL!"=="" set /p CHANGE_URL=Change URL? y/N:
+if /i "!CHANGE_URL!"=="y" set "KIOSK_URL="
+if "!KIOSK_URL!"=="" set /p KIOSK_URL=Enter kiosk URL:
+if not "!KIOSK_URL!"=="" echo !KIOSK_URL!>"%URL_FILE%"
 echo [OK] Kiosk URL: !KIOSK_URL!
 
 :: ── Desktop shortcut ─────────────────────────────────────────
 echo.
 echo Creating Desktop shortcut...
 set "CHROME=C:\Program Files\Google\Chrome\Application\chrome.exe"
-if not exist "%CHROME%" set "CHROME=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+set "CHROME32=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+if not exist "%CHROME%" set "CHROME=%CHROME32%"
 if not exist "%CHROME%" (
   echo WARNING: Chrome not found at default path. Shortcut will be created but may not work.
   echo Install Chrome and re-run setup, or edit the shortcut manually.
