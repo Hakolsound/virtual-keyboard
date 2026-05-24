@@ -71,7 +71,7 @@ set "KIOSK_URL="
 if exist "%URL_FILE%" (
   set /p KIOSK_URL=<"%URL_FILE%"
   echo Current kiosk URL: !KIOSK_URL!
-  set /p CHANGE_URL=Change URL? (y/N):
+  set /p CHANGE_URL=Change URL? ^(y/N^):
   if /i "!CHANGE_URL!"=="y" set "KIOSK_URL="
 )
 if "!KIOSK_URL!"=="" (

@@ -30,14 +30,15 @@ if exist "%URL_FILE%" (
   echo No kiosk URL saved.
 )
 
-set /p CHANGE_URL=Change URL? (y/N):
+set /p CHANGE_URL=Change URL? ^(y/N^):
 if /i "!CHANGE_URL!"=="y" (
   set /p KIOSK_URL=Enter new kiosk URL:
   echo !KIOSK_URL!>"%URL_FILE%"
   echo [OK] URL updated.
 
   set "CHROME=C:\Program Files\Google\Chrome\Application\chrome.exe"
-  if not exist "!CHROME!" set "CHROME=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+  set "CHROME32=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+  if not exist "!CHROME!" set "CHROME=!CHROME32!"
   set "SHORTCUT=%PUBLIC%\Desktop\Kiosk.lnk"
   set "ARGS=--kiosk --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,Translate,AutofillShowTypePredictions,AutofillEnableAccountWalletStorage,AutofillServerCommunication --disable-session-crashed-bubble --hide-crash-restore-bubble --load-extension="!DIST!" !KIOSK_URL!"
 
