@@ -44,9 +44,11 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 :: ── Chrome ────────────────────────────────────────────────────
-if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
+set "CHROME64=C:\Program Files\Google\Chrome\Application\chrome.exe"
+set "CHROME32=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+if exist "%CHROME64%" (
   echo [OK] Chrome already installed.
-) else if exist "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" (
+) else if exist "%CHROME32%" (
   echo [OK] Chrome already installed.
 ) else (
   echo Installing Chrome...
