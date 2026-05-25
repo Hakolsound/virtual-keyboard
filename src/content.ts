@@ -84,72 +84,53 @@ function suppressAutofill(el: HTMLInputElement) {
   }
 }
 
-function persistFocus(el: HTMLInputElement, rAfAttempts = 8) {
-  // Called after el.focus() — re-applies focus on the next frame if the app stole it.
-  // Stops once the element is confirmed focused OR another text input takes over.
-  if (rAfAttempts <= 0) return
-  requestAnimationFrame(() => {
-    if (!el.isConnected) return
-    if (isTextInput(document.activeElement as Element) && document.activeElement !== el) return
-    if (document.activeElement !== el) {
+// IntersectionObserver fires when an input becomes visible in the viewport.
+// This handles slide/carousel SPAs where inputs exist in the DOM but are hidden
+// until their slide transitions in — timeout retries can't catch that.
+let io: IntersectionObserver | null = null
+
+function getIntersectionObserver(): IntersectionObserver {
+  if (io) return io
+  io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue
+      const el = entry.target as HTMLInputElement
+      if (!isTextInput(el)) continue
+      if (el.disabled || el.readOnly) continue
+      // Only auto-focus if no text input is currently active
+      if (isTextInput(document.activeElement as Element)) continue
       el.focus()
+      // Re-apply focus for up to 8 frames in case the SPA steals it back
+      let frames = 8
+      const retry = () => {
+        if (!el.isConnected || frames-- <= 0) return
+        if (isTextInput(document.activeElement as Element) && document.activeElement !== el) return
+        if (document.activeElement !== el) el.focus()
+        requestAnimationFrame(retry)
+      }
+      requestAnimationFrame(retry)
     }
-    persistFocus(el, rAfAttempts - 1)
-  })
+  }, { threshold: 0.5 })  // fires when input is at least 50% visible
+  return io
 }
 
-function tryAutoFocus(el: HTMLInputElement, attempt = 0) {
-  if (!isTextInput(el)) return
-  if (el.disabled || el.readOnly) return
-  setTimeout(() => {
-    // Only skip if the user is actively typing in another text field
-    if (isTextInput(document.activeElement as Element)) return
-    // Element was detached (React remounted it) — find the replacement
-    if (!el.isConnected) {
-      if (attempt < 4) {
-        const replacement = document.querySelector<HTMLInputElement>('input')
-        if (replacement) tryAutoFocus(replacement, attempt + 1)
-      }
-      return
-    }
-    const rect = el.getBoundingClientRect()
-    if (rect.width === 0 || rect.height === 0) {
-      if (attempt < 4) tryAutoFocus(el, attempt + 1)
-      return
-    }
-    el.focus()
-    persistFocus(el)
-  }, 150 + attempt * 200)
+function watchInput(el: HTMLInputElement) {
+  suppressAutofill(el)
+  getIntersectionObserver().observe(el)
 }
 
 function setupInputWatcher() {
-  document.querySelectorAll<HTMLInputElement>('input').forEach(suppressAutofill)
-
-  // Auto-focus the first visible input already on the page
-  const initial = document.querySelector<HTMLInputElement>('input')
-  if (initial) tryAutoFocus(initial)
-
-  let pendingFocus: HTMLInputElement | null = null
+  document.querySelectorAll<HTMLInputElement>('input').forEach(watchInput)
 
   const mo = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
         if (node instanceof HTMLInputElement) {
-          suppressAutofill(node)
-          if (!pendingFocus) pendingFocus = node
+          watchInput(node)
         } else if (node instanceof HTMLElement) {
-          node.querySelectorAll<HTMLInputElement>('input').forEach(suppressAutofill)
-          if (!pendingFocus) {
-            const first = node.querySelector<HTMLInputElement>('input')
-            if (first) pendingFocus = first
-          }
+          node.querySelectorAll<HTMLInputElement>('input').forEach(watchInput)
         }
       })
-    }
-    // One auto-focus attempt per mutation batch
-    if (pendingFocus) {
-      tryAutoFocus(pendingFocus)
-      pendingFocus = null
     }
   })
   mo.observe(document.body, { childList: true, subtree: true })
