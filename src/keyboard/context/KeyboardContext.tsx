@@ -150,8 +150,21 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
   // ── helpers ────────────────────────────────────────────────────────────────
   const commitValue = useCallback((newValue: string, newCursor: number) => {
     dispatch({ type: 'SET_VALUE', value: newValue, cursorPos: newCursor })
-    if (targetRef.current) {
-      dispatchToTarget(targetRef.current, newValue, newCursor)
+    let target = targetRef.current
+    // React SPAs sometimes unmount+remount the input on state change (e.g. controlled
+    // inputs that re-render when focused). If our stored ref is detached, fall back
+    // to whatever the DOM currently considers focused.
+    if (target && !target.isConnected) {
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+        targetRef.current = active
+        target = active
+      } else {
+        target = null
+      }
+    }
+    if (target) {
+      dispatchToTarget(target, newValue, newCursor)
     }
   }, [])
 

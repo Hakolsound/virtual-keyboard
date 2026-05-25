@@ -90,9 +90,16 @@ function tryAutoFocus(el: HTMLInputElement, attempt = 0) {
   setTimeout(() => {
     // Only skip if the user is actively typing in another text field
     if (isTextInput(document.activeElement as Element)) return
+    // Element was detached (React remounted it) — find the replacement
+    if (!el.isConnected) {
+      if (attempt < 3) {
+        const replacement = document.querySelector<HTMLInputElement>('input')
+        if (replacement) tryAutoFocus(replacement, attempt + 1)
+      }
+      return
+    }
     const rect = el.getBoundingClientRect()
     if (rect.width === 0 || rect.height === 0) {
-      // Element not visible yet — retry up to 3 times with growing delay
       if (attempt < 3) tryAutoFocus(el, attempt + 1)
       return
     }
