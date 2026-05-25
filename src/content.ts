@@ -88,47 +88,66 @@ function suppressAutofill(el: HTMLInputElement) {
 // This handles slide/carousel SPAs where inputs exist in the DOM but are hidden
 // until their slide transitions in — timeout retries can't catch that.
 let io: IntersectionObserver | null = null
+// Tracks which inputs we observe as currently visible (>=50% in viewport).
+// We only skip auto-focus if the active element is in this set — that means
+// the user is actively typing in a visible input we put focus on. Elements
+// the host app focuses in off-screen slides are never in this set.
+const visibleInputs = new Set<Element>()
 
 function getIntersectionObserver(): IntersectionObserver {
   if (io) return io
   io = new IntersectionObserver((entries) => {
+    // Process exits first so that when a slide-out and slide-in arrive in the
+    // same batch, the leaving input is removed from visibleInputs before we
+    // evaluate the focus guard for the entering input.
+    for (const entry of entries) {
+      if (!entry.isIntersecting) visibleInputs.delete(entry.target)
+    }
+    for (const entry of entries) {
+      if (entry.isIntersecting) visibleInputs.add(entry.target)
+    }
     for (const entry of entries) {
       if (!entry.isIntersecting) continue
       const el = entry.target as HTMLInputElement
       if (!isTextInput(el)) continue
       if (el.disabled || el.readOnly) continue
-      // Only auto-focus if no text input is currently active
-      if (isTextInput(document.activeElement as Element)) continue
+      // No guard here: IntersectionObserver only fires on visibility *changes*,
+      // so a hidden element the app focused off-screen won't re-trigger. We
+      // always focus whatever just became visible.
       el.focus()
-      // Re-apply focus for up to 8 frames in case the SPA steals it back
       let frames = 8
       const retry = () => {
         if (!el.isConnected || frames-- <= 0) return
-        if (isTextInput(document.activeElement as Element) && document.activeElement !== el) return
+        // Stop retrying if a different visible input took focus (user tapped away).
+        if (document.activeElement !== el && visibleInputs.has(document.activeElement!)) return
         if (document.activeElement !== el) el.focus()
         requestAnimationFrame(retry)
       }
       requestAnimationFrame(retry)
     }
-  }, { threshold: 0.5 })  // fires when input is at least 50% visible
+  }, { threshold: 0.5 })
   return io
 }
 
-function watchInput(el: HTMLInputElement) {
-  suppressAutofill(el)
+function watchInput(el: HTMLInputElement | HTMLTextAreaElement) {
+  if (el instanceof HTMLInputElement) suppressAutofill(el)
   getIntersectionObserver().observe(el)
 }
 
 function setupInputWatcher() {
-  document.querySelectorAll<HTMLInputElement>('input').forEach(watchInput)
+  document.querySelectorAll<HTMLInputElement>('input, textarea').forEach(el => {
+    if (isTextInput(el)) watchInput(el)
+  })
 
   const mo = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
-        if (node instanceof HTMLInputElement) {
-          watchInput(node)
+        if (isTextInput(node as Element)) {
+          watchInput(node as HTMLInputElement | HTMLTextAreaElement)
         } else if (node instanceof HTMLElement) {
-          node.querySelectorAll<HTMLInputElement>('input').forEach(watchInput)
+          node.querySelectorAll<HTMLInputElement>('input, textarea').forEach(el => {
+            if (isTextInput(el)) watchInput(el)
+          })
         }
       })
     }
