@@ -84,6 +84,20 @@ function suppressAutofill(el: HTMLInputElement) {
   }
 }
 
+function persistFocus(el: HTMLInputElement, rAfAttempts = 8) {
+  // Called after el.focus() — re-applies focus on the next frame if the app stole it.
+  // Stops once the element is confirmed focused OR another text input takes over.
+  if (rAfAttempts <= 0) return
+  requestAnimationFrame(() => {
+    if (!el.isConnected) return
+    if (isTextInput(document.activeElement as Element) && document.activeElement !== el) return
+    if (document.activeElement !== el) {
+      el.focus()
+    }
+    persistFocus(el, rAfAttempts - 1)
+  })
+}
+
 function tryAutoFocus(el: HTMLInputElement, attempt = 0) {
   if (!isTextInput(el)) return
   if (el.disabled || el.readOnly) return
@@ -92,7 +106,7 @@ function tryAutoFocus(el: HTMLInputElement, attempt = 0) {
     if (isTextInput(document.activeElement as Element)) return
     // Element was detached (React remounted it) — find the replacement
     if (!el.isConnected) {
-      if (attempt < 3) {
+      if (attempt < 4) {
         const replacement = document.querySelector<HTMLInputElement>('input')
         if (replacement) tryAutoFocus(replacement, attempt + 1)
       }
@@ -100,10 +114,11 @@ function tryAutoFocus(el: HTMLInputElement, attempt = 0) {
     }
     const rect = el.getBoundingClientRect()
     if (rect.width === 0 || rect.height === 0) {
-      if (attempt < 3) tryAutoFocus(el, attempt + 1)
+      if (attempt < 4) tryAutoFocus(el, attempt + 1)
       return
     }
     el.focus()
+    persistFocus(el)
   }, 150 + attempt * 200)
 }
 
